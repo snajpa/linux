@@ -225,6 +225,7 @@ enum res_type {
 	_OOM_TYPE,
 	_KMEM,
 	_TCP,
+	_CSS_IDS,
 };
 
 #define MEMFILE_PRIVATE(x, val)	((x) << 16 | (val))
@@ -2447,13 +2448,31 @@ static inline int mem_cgroup_move_swap_account(swp_entry_t entry,
 static DEFINE_MUTEX(memcg_max_mutex);
 
 static int mem_cgroup_resize_max(struct mem_cgroup *memcg,
-				 unsigned long max, bool memsw)
+				 unsigned long max, enum res_type css_kind)
 {
 	bool enlarge = false;
 	bool drained = false;
 	int ret;
 	bool limits_invariant;
-	struct page_counter *counter = memsw ? &memcg->memsw : &memcg->memory;
+	bool memlimit = true;
+	bool memsw = false;
+	struct page_counter *counter;
+
+	switch (css_kind) {
+	case _MEM:
+		counter = &memcg->memory;
+		break;
+	case _MEMSWAP:
+		memsw = true;
+		counter = &memcg->memsw;
+		break;
+	case _CSS_IDS:
+		memlimit = false;
+		counter = &memcg->css_ids;
+		break;
+	default:
+		BUG();
+	}
 
 	do {
 		if (signal_pending(current)) {
@@ -2466,17 +2485,25 @@ static int mem_cgroup_resize_max(struct mem_cgroup *memcg,
 		 * Make sure that the new limit (memsw or memory limit) doesn't
 		 * break our basic invariant rule memory.max <= memsw.max.
 		 */
-		limits_invariant = memsw ? max >= memcg->memory.max :
+		if (memlimit)
+			limits_invariant = memsw ? max >= memcg->memory.max :
 					   max <= memcg->memsw.max;
-		if (!limits_invariant) {
+
+		if (memlimit && !limits_invariant) {
 			mutex_unlock(&memcg_max_mutex);
 			ret = -EINVAL;
 			break;
 		}
+
 		if (max > counter->max)
 			enlarge = true;
+
+		printk(KERN_NOTICE "mem_cgroup_resize_max max %d counter->max %d enlarge %d limits_invariant %d", max, counter->max, enlarge, limits_invariant);
+
 		ret = page_counter_set_max(counter, max);
 		mutex_unlock(&memcg_max_mutex);
+
+		printk(KERN_NOTICE "mem_cgroup_resize_max #2 max %d counter->max %d enlarge %d limits_invariant %d ret %d", max, counter->max, enlarge, limits_invariant, ret);
 
 		if (!ret)
 			break;
@@ -2487,15 +2514,29 @@ static int mem_cgroup_resize_max(struct mem_cgroup *memcg,
 			continue;
 		}
 
-		if (!try_to_free_mem_cgroup_pages(memcg, 1,
+		if (memlimit && !try_to_free_mem_cgroup_pages(memcg, 1,
 					GFP_KERNEL, !memsw)) {
 			ret = -EBUSY;
 			break;
 		}
+
+		if (!memlimit) {
+			/* TODO: css id reclaim
+			 *
+			 * If we're here, it must be CSS_ID limit and we can't reclaim yet
+			 */
+			ret = -EBUSY;
+			BUG();
+			continue;
+		}
 	} while (true);
 
-	if (!ret && enlarge)
-		memcg_oom_recover(memcg);
+	if (!ret && enlarge) {
+		if (memlimit)
+			memcg_oom_recover(memcg);
+	}
+
+	printk(KERN_NOTICE "mem_cgroup_resize_max ret %d", ret);
 
 	return ret;
 }
@@ -2741,6 +2782,7 @@ static u64 mem_cgroup_read_u64(struct cgroup_subsys_state *css,
 {
 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
 	struct page_counter *counter;
+	u64 coeff = PAGE_SIZE;	
 
 	switch (MEMFILE_TYPE(cft->private)) {
 	case _MEM:
@@ -2755,6 +2797,10 @@ static u64 mem_cgroup_read_u64(struct cgroup_subsys_state *css,
 	case _TCP:
 		counter = &memcg->tcpmem;
 		break;
+	case _CSS_IDS:
+		counter = &memcg->css_ids;
+		coeff = 1;
+		break;
 	default:
 		BUG();
 	}
@@ -2762,18 +2808,18 @@ static u64 mem_cgroup_read_u64(struct cgroup_subsys_state *css,
 	switch (MEMFILE_ATTR(cft->private)) {
 	case RES_USAGE:
 		if (counter == &memcg->memory)
-			return (u64)mem_cgroup_usage(memcg, false) * PAGE_SIZE;
+			return (u64)mem_cgroup_usage(memcg, false) * coeff;
 		if (counter == &memcg->memsw)
-			return (u64)mem_cgroup_usage(memcg, true) * PAGE_SIZE;
-		return (u64)page_counter_read(counter) * PAGE_SIZE;
+			return (u64)mem_cgroup_usage(memcg, true) * coeff;
+		return (u64)page_counter_read(counter) * coeff;
 	case RES_LIMIT:
-		return (u64)counter->max * PAGE_SIZE;
+		return (u64)counter->max * coeff;
 	case RES_MAX_USAGE:
-		return (u64)counter->watermark * PAGE_SIZE;
+		return (u64)counter->watermark * coeff;
 	case RES_FAILCNT:
 		return counter->failcnt;
 	case RES_SOFT_LIMIT:
-		return (u64)memcg->soft_limit * PAGE_SIZE;
+		return (u64)memcg->soft_limit * coeff;
 	default:
 		BUG();
 	}
@@ -2935,11 +2981,21 @@ static ssize_t mem_cgroup_write(struct kernfs_open_file *of,
 				char *buf, size_t nbytes, loff_t off)
 {
 	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
-	unsigned long nr_pages;
-	int ret;
+	unsigned long nr_pages = 0;
+	int ret = 0;
+	char *end;
 
 	buf = strstrip(buf);
-	ret = page_counter_memparse(buf, "-1", &nr_pages);
+
+	if (MEMFILE_TYPE(of_cft(of)->private) != _CSS_IDS) {
+		ret = page_counter_memparse(buf, "-1", &nr_pages);
+	} else {
+		nr_pages = memparse(buf, &end);
+		if (*end != '\0')
+			return -EINVAL;
+
+	}
+
 	if (ret)
 		return ret;
 
@@ -2951,16 +3007,19 @@ static ssize_t mem_cgroup_write(struct kernfs_open_file *of,
 		}
 		switch (MEMFILE_TYPE(of_cft(of)->private)) {
 		case _MEM:
-			ret = mem_cgroup_resize_max(memcg, nr_pages, false);
+			ret = mem_cgroup_resize_max(memcg, nr_pages, _MEM);
 			break;
 		case _MEMSWAP:
-			ret = mem_cgroup_resize_max(memcg, nr_pages, true);
+			ret = mem_cgroup_resize_max(memcg, nr_pages, _MEMSWAP);
 			break;
 		case _KMEM:
 			ret = memcg_update_kmem_max(memcg, nr_pages);
 			break;
 		case _TCP:
 			ret = memcg_update_tcp_max(memcg, nr_pages);
+			break;
+		case _CSS_IDS:
+			ret = mem_cgroup_resize_max(memcg, nr_pages, _CSS_IDS);
 			break;
 		}
 		break;
@@ -2990,6 +3049,9 @@ static ssize_t mem_cgroup_reset(struct kernfs_open_file *of, char *buf,
 		break;
 	case _TCP:
 		counter = &memcg->tcpmem;
+		break;
+	case _CSS_IDS:
+		counter = &memcg->css_ids;
 		break;
 	default:
 		BUG();
@@ -4008,6 +4070,29 @@ static struct cftype mem_cgroup_legacy_files[] = {
 		.write = mem_cgroup_reset,
 		.read_u64 = mem_cgroup_read_u64,
 	},
+	{
+		.name = "css_ids.limit",
+		.private = MEMFILE_PRIVATE(_CSS_IDS, RES_LIMIT),
+		.write = mem_cgroup_write,
+		.read_u64 = mem_cgroup_read_u64,
+	},
+	{
+		.name = "css_ids.usage",
+		.private = MEMFILE_PRIVATE(_CSS_IDS, RES_USAGE),
+		.read_u64 = mem_cgroup_read_u64,
+	},
+	{
+		.name = "css_ids.failcnt",
+		.private = MEMFILE_PRIVATE(_CSS_IDS, RES_FAILCNT),
+		.write = mem_cgroup_reset,
+		.read_u64 = mem_cgroup_read_u64,
+	},
+	{
+		.name = "css_ids.max_usage",
+		.private = MEMFILE_PRIVATE(_CSS_IDS, RES_MAX_USAGE),
+		.write = mem_cgroup_reset,
+		.read_u64 = mem_cgroup_read_u64,
+	},
 	{ },	/* terminate */
 };
 
@@ -4082,6 +4167,56 @@ struct mem_cgroup *mem_cgroup_from_id(unsigned short id)
 {
 	WARN_ON_ONCE(!rcu_read_lock_held());
 	return idr_find(&mem_cgroup_idr, id);
+}
+
+bool try_memcg_css_charge(struct task_struct *p)
+{
+	struct mem_cgroup *current_memcg;
+	struct page_counter *counter;
+
+	if (!p) {
+		BUG();
+		return true;
+	} else
+		current_memcg = mem_cgroup_from_task(p);
+
+	if (!current_memcg) {
+		BUG();
+		return true;
+	}
+
+	if (cgroup_subsys_on_dfl(memory_cgrp_subsys) ||
+	    mem_cgroup_is_root(current_memcg))
+	   	return true;
+
+	if (!page_counter_try_charge(&current_memcg->css_ids, (unsigned long)1, &counter)) {
+		memcg_memory_event(current_memcg, MEMCG_CSS_IDS_FAIL);
+		mem_cgroup_id_put(current_memcg);
+		printk(KERN_NOTICE "kokoooot css_id failolo");
+		return false;
+	}
+
+	return true;
+}
+
+void memcg_css_uncharge(struct task_struct *p)
+{
+	struct mem_cgroup *current_memcg;
+
+	if (!p) {
+		BUG();
+		return;
+	} else
+		current_memcg = mem_cgroup_from_task(p);
+
+	if (!current_memcg) {
+		BUG();
+		return;
+	}
+
+	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) &&
+	    !mem_cgroup_is_root(current_memcg))
+		page_counter_uncharge(&current_memcg->css_ids, (unsigned long)1);
 }
 
 static int alloc_mem_cgroup_per_node_info(struct mem_cgroup *memcg, int node)
@@ -4190,6 +4325,7 @@ static struct mem_cgroup *mem_cgroup_alloc(void)
 	INIT_LIST_HEAD(&memcg->cgwb_list);
 #endif
 	idr_replace(&mem_cgroup_idr, memcg, memcg->id.id);
+
 	return memcg;
 fail:
 	mem_cgroup_id_remove(memcg);
@@ -4221,12 +4357,14 @@ mem_cgroup_css_alloc(struct cgroup_subsys_state *parent_css)
 		page_counter_init(&memcg->memsw, &parent->memsw);
 		page_counter_init(&memcg->kmem, &parent->kmem);
 		page_counter_init(&memcg->tcpmem, &parent->tcpmem);
+		page_counter_init_max(&memcg->css_ids, &parent->css_ids, MEM_CGROUP_ID_MAX);
 	} else {
 		page_counter_init(&memcg->memory, NULL);
 		page_counter_init(&memcg->swap, NULL);
 		page_counter_init(&memcg->memsw, NULL);
 		page_counter_init(&memcg->kmem, NULL);
 		page_counter_init(&memcg->tcpmem, NULL);
+		page_counter_init_max(&memcg->css_ids, NULL, MEM_CGROUP_ID_MAX);
 		/*
 		 * Deeper hierachy with use_hierarchy == false doesn't make
 		 * much sense so let cgroup subsystem know about this

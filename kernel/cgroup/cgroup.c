@@ -56,6 +56,7 @@
 #include <linux/file.h>
 #include <linux/sched/cputime.h>
 #include <net/sock.h>
+#include <linux/memcontrol.h>
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/cgroup.h>
@@ -4758,9 +4759,14 @@ static struct cgroup_subsys_state *css_create(struct cgroup *cgrp,
 	struct cgroup *parent = cgroup_parent(cgrp);
 	struct cgroup_subsys_state *parent_css = cgroup_css(parent, ss);
 	struct cgroup_subsys_state *css;
+
 	int err;
 
 	lockdep_assert_held(&cgroup_mutex);
+
+	if (!try_memcg_css_charge(current)) {
+		return ERR_PTR(-ENOMEM);
+	}
 
 	css = ss->css_alloc(parent_css);
 	if (!css)
@@ -4999,10 +5005,11 @@ out_unlock:
  */
 static void css_killed_work_fn(struct work_struct *work)
 {
-	struct cgroup_subsys_state *css =
-		container_of(work, struct cgroup_subsys_state, destroy_work);
+	struct cgroup_subsys_state *css;
 
 	mutex_lock(&cgroup_mutex);
+
+	css = container_of(work, struct cgroup_subsys_state, destroy_work);
 
 	do {
 		offline_css(css);
@@ -5038,6 +5045,10 @@ static void css_killed_ref_fn(struct percpu_ref *ref)
 static void kill_css(struct cgroup_subsys_state *css)
 {
 	lockdep_assert_held(&cgroup_mutex);
+
+	if (current)
+		memcg_css_uncharge(current);
+
 
 	if (css->flags & CSS_DYING)
 		return;

@@ -56,6 +56,7 @@ enum memcg_memory_event {
 	MEMCG_OOM_KILL,
 	MEMCG_SWAP_MAX,
 	MEMCG_SWAP_FAIL,
+	MEMCG_CSS_IDS_FAIL,
 	MEMCG_NR_MEMORY_EVENTS,
 };
 
@@ -196,6 +197,7 @@ struct mem_cgroup {
 	/* Accounted resources */
 	struct page_counter memory;
 	struct page_counter swap;
+	struct page_counter css_ids;
 
 	/* Legacy consumer-oriented counters */
 	struct page_counter memsw;
@@ -752,6 +754,9 @@ static inline void memcg_memory_event_mm(struct mm_struct *mm,
 		memcg_memory_event(memcg, event);
 	rcu_read_unlock();
 }
+
+bool try_memcg_css_charge(struct task_struct *p);
+void memcg_css_uncharge(struct task_struct *p);
 
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 void mem_cgroup_split_huge_fixup(struct page *head);

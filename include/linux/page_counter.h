@@ -34,12 +34,20 @@ struct page_counter {
 #define PAGE_COUNTER_MAX (LONG_MAX / PAGE_SIZE)
 #endif
 
+
+static inline void page_counter_init_max(struct page_counter *counter,
+				     struct page_counter *parent,
+				     unsigned long max)
+{
+	atomic_long_set(&counter->usage, 0);
+	counter->max = max;
+	counter->parent = parent;
+}
+
 static inline void page_counter_init(struct page_counter *counter,
 				     struct page_counter *parent)
 {
-	atomic_long_set(&counter->usage, 0);
-	counter->max = PAGE_COUNTER_MAX;
-	counter->parent = parent;
+	page_counter_init_max(counter, parent, PAGE_COUNTER_MAX);
 }
 
 static inline unsigned long page_counter_read(struct page_counter *counter)

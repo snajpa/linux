@@ -120,8 +120,10 @@ bool page_counter_try_charge(struct page_counter *counter,
 		 */
 		new = atomic_long_add_return(nr_pages, &c->usage);
 		if (new > c->max) {
+			printk(KERN_NOTICE "kkt c->max is %d, new is %d, c->usage is %d, nevychadzacka", c->max, new, c->usage);
 			atomic_long_sub(nr_pages, &c->usage);
 			propagate_protected_usage(counter, new);
+			printk(KERN_NOTICE "kkt2 c->max is %d, new is %d, c->usage is %d, nevychadzacka", c->max, new, c->usage);
 			/*
 			 * This is racy, but we can live with some
 			 * inaccuracy in the failcnt.
@@ -188,11 +190,15 @@ int page_counter_set_max(struct page_counter *counter, unsigned long nr_pages)
 		 * modified counter and retry.
 		 */
 		usage = atomic_long_read(&counter->usage);
+		printk(KERN_NOTICE "page_counter_set_max usage %d nr_pages %d", usage, nr_pages);
 
 		if (usage > nr_pages)
 			return -EBUSY;
 
 		old = xchg(&counter->max, nr_pages);
+
+		printk(KERN_NOTICE "page_counter_set_max old %d", old);
+		printk(KERN_NOTICE "page_counter_set_max atomic_long_read(&counter->usage) %d", atomic_long_read(&counter->usage));
 
 		if (atomic_long_read(&counter->usage) <= usage)
 			return 0;
