@@ -19,11 +19,13 @@
 #include <net/udp.h>
 #include <net/tcp.h>
 #include <net/route.h>
+#include <linux/syslog.h>
 
 #include <linux/netfilter.h>
 #include <linux/netfilter_ipv6/ip6_tables.h>
 #include <linux/netfilter/xt_LOG.h>
 #include <net/netfilter/nf_log.h>
+#include <net/net_namespace.h>
 
 static const struct nf_loginfo default_loginfo = {
 	.type	= NF_LOG_TYPE_LOG,
@@ -349,9 +351,9 @@ static void nf_log_ip6_packet(struct net *net, u_int8_t pf,
 			      const char *prefix)
 {
 	struct nf_log_buf *m;
+	struct net *netns = read_pnet(&skb->dev->nd_net);
 
-	/* FIXME: Disabled from containers until syslog ns is supported */
-	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
+	if (!sysctl_nf_log_all_netns)
 		return;
 
 	m = nf_log_buf_open();
@@ -367,7 +369,7 @@ static void nf_log_ip6_packet(struct net *net, u_int8_t pf,
 
 	dump_ipv6_packet(net, m, loginfo, skb, skb_network_offset(skb), 1);
 
-	nf_log_buf_close(m);
+	nf_log_buf_close(m, netns->user_ns->syslog_ns);
 }
 
 static struct nf_logger nf_ip6_logger __read_mostly = {
