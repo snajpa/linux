@@ -50,6 +50,9 @@ struct kmsg_dumper {
 	u32 next_idx;
 	u64 cur_seq;
 	u64 next_seq;
+
+	/* Syslog namespace */
+	struct syslog_namespace *ns;
 };
 
 #ifdef CONFIG_PRINTK

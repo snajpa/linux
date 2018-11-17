@@ -8,6 +8,7 @@
 #include <linux/linkage.h>
 #include <linux/cache.h>
 
+struct syslog_namespace;
 extern const char linux_banner[];
 extern const char linux_proc_banner[];
 
@@ -126,6 +127,9 @@ struct va_format {
  */
 #define DEPRECATED	"[Deprecated]: "
 
+asmlinkage __printf(2, 3) __cold
+int ns_printk(struct syslog_namespace *ns, const char *fmt, ...);
+
 /*
  * Dummy printk for disabled debugging statements to use whilst maintaining
  * gcc's format checking.
@@ -190,7 +194,6 @@ extern bool printk_timed_ratelimit(unsigned long *caller_jiffies,
 				   unsigned int interval_msec);
 
 extern int printk_delay_msec;
-extern int dmesg_restrict;
 
 extern int
 devkmsg_sysctl_set_loglvl(struct ctl_table *table, int write, void __user *buf,

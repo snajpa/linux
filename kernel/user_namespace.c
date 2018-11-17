@@ -25,6 +25,7 @@
 #include <linux/fs_struct.h>
 #include <linux/bsearch.h>
 #include <linux/sort.h>
+#include <linux/syslog.h>
 
 static struct kmem_cache *user_ns_cachep __read_mostly;
 static DEFINE_MUTEX(userns_state_mutex);
@@ -128,6 +129,8 @@ int create_user_ns(struct cred *new)
 	}
 	ns->ucounts = ucounts;
 
+	ns->syslog_ns = get_syslog_ns(parent_ns->syslog_ns);
+
 	/* Inherit USERNS_SETGROUPS_ALLOWED from our parent */
 	mutex_lock(&userns_state_mutex);
 	ns->flags = parent_ns->flags;
@@ -182,6 +185,9 @@ static void free_user_ns(struct work_struct *work)
 
 	do {
 		struct ucounts *ucounts = ns->ucounts;
+
+		put_syslog_ns(ns->syslog_ns);
+
 		parent = ns->parent;
 		if (ns->gid_map.nr_extents > UID_GID_MAP_MAX_BASE_EXTENTS) {
 			kfree(ns->gid_map.forward);
