@@ -76,6 +76,7 @@ struct user_namespace {
 #endif
 	struct ucounts		*ucounts;
 	int ucount_max[UCOUNT_COUNTS];
+	struct syslog_namespace *syslog_ns;
 } __randomize_layout;
 
 struct ucounts {
@@ -87,6 +88,7 @@ struct ucounts {
 };
 
 extern struct user_namespace init_user_ns;
+extern struct syslog_namespace init_syslog_ns;
 
 bool setup_userns_sysctls(struct user_namespace *ns);
 void retire_userns_sysctls(struct user_namespace *ns);
