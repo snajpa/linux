@@ -277,8 +277,11 @@ int hypfs_vm_init(void)
 		guest_query = all_guests;
 	else if (diag2fc(0, local_guest, NULL) > 0)
 		guest_query = local_guest;
-	else
+	else {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	return hypfs_dbfs_create_file(&dbfs_file_2fc);
 }
 

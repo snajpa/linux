@@ -135,6 +135,8 @@ int mlx5_fpga_mem_read(struct mlx5_fpga_device *fdev, size_t size, u64 addr,
 	default:
 		mlx5_fpga_warn(fdev, "Unexpected read access_type %u\n",
 			       access_type);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -156,6 +158,8 @@ int mlx5_fpga_mem_write(struct mlx5_fpga_device *fdev, size_t size, u64 addr,
 	default:
 		mlx5_fpga_warn(fdev, "Unexpected write access_type %u\n",
 			       access_type);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

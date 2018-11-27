@@ -571,8 +571,11 @@ static int bond_opt_check_deps(struct bonding *bond,
 {
 	struct bond_params *params = &bond->params;
 
-	if (test_bit(params->mode, &opt->unsuppmodes))
+	if (test_bit(params->mode, &opt->unsuppmodes)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	if ((opt->flags & BOND_OPTFLAG_NOSLAVES) && bond_has_slaves(bond))
 		return -ENOTEMPTY;
 	if ((opt->flags & BOND_OPTFLAG_IFDOWN) && (bond->dev->flags & IFF_UP))

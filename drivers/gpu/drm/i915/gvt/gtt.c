@@ -66,8 +66,11 @@ bool intel_gvt_ggtt_validate_range(struct intel_vgpu *vgpu, u64 addr, u32 size)
 int intel_gvt_ggtt_gmadr_g2h(struct intel_vgpu *vgpu, u64 g_addr, u64 *h_addr)
 {
 	if (WARN(!vgpu_gmadr_is_valid(vgpu, g_addr),
-		 "invalid guest gmadr %llx\n", g_addr))
+		 "invalid guest gmadr %llx\n", g_addr)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (vgpu_gmadr_is_aperture(vgpu, g_addr))
 		*h_addr = vgpu_aperture_gmadr_base(vgpu)
@@ -82,8 +85,11 @@ int intel_gvt_ggtt_gmadr_g2h(struct intel_vgpu *vgpu, u64 g_addr, u64 *h_addr)
 int intel_gvt_ggtt_gmadr_h2g(struct intel_vgpu *vgpu, u64 h_addr, u64 *g_addr)
 {
 	if (WARN(!gvt_gmadr_is_valid(vgpu->gvt, h_addr),
-		 "invalid host gmadr %llx\n", h_addr))
+		 "invalid host gmadr %llx\n", h_addr)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (gvt_gmadr_is_aperture(vgpu->gvt, h_addr))
 		*g_addr = vgpu_aperture_gmadr_base(vgpu)

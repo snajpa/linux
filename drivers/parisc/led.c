@@ -183,8 +183,11 @@ static ssize_t led_proc_write(struct file *file, const char __user *buf,
 	char *cur, lbuf[32];
 	int d;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (count >= sizeof(lbuf))
 		count = sizeof(lbuf)-1;

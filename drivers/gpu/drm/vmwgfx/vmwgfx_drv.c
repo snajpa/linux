@@ -1178,8 +1178,11 @@ static long vmw_generic_ioctl(struct file *filp, unsigned int cmd,
 							_IOC_SIZE(cmd));
 		} else if (nr == DRM_COMMAND_BASE + DRM_VMW_UPDATE_LAYOUT) {
 			if (!drm_is_current_master(file_priv) &&
-			    !capable(CAP_SYS_ADMIN))
+			    !capable(CAP_SYS_ADMIN)) {
+				printk("-EACCESS @ file %s line %d function %s\n",
+				       __FILE__, __LINE__, __FUNCTION__);
 				return -EACCES;
+			}
 		}
 
 		if (unlikely(ioctl->cmd != cmd))

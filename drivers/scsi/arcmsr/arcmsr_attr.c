@@ -73,8 +73,11 @@ static ssize_t arcmsr_sysfs_iop_message_read(struct file *filp,
 	int32_t allxfer_len = 0;
 	unsigned long flags;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* do message unit read. */
 	ptmpQbuffer = (uint8_t *)buf;
@@ -120,8 +123,11 @@ static ssize_t arcmsr_sysfs_iop_message_write(struct file *filp,
 	uint8_t *pQbuffer, *ptmpuserbuffer;
 	unsigned long flags;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	if (count > ARCMSR_API_DATA_BUFLEN)
 		return -EINVAL;
 	/* do message unit write. */
@@ -167,8 +173,11 @@ static ssize_t arcmsr_sysfs_iop_message_clear(struct file *filp,
 	uint8_t *pQbuffer;
 	unsigned long flags;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	arcmsr_clear_iop2drv_rqueue_buffer(acb);
 	acb->acb_flags |=

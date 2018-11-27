@@ -172,8 +172,11 @@ static int ide_write_setting(ide_drive_t *drive,
 {
 	const struct ide_devset *ds = setting->setting;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	if (!ds->set)
 		return -EPERM;
 	if ((ds->flags & DS_SYNC)
@@ -289,8 +292,11 @@ static ssize_t ide_settings_proc_write(struct file *file, const char __user *buf
 	const struct ide_proc_devset *setting;
 	char *buf, *s;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	proc_ide_settings_warn();
 

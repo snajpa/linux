@@ -1461,8 +1461,11 @@ static int ioctl_send_broadcast_request(struct client *client,
 	}
 
 	/* Security policy: Only allow accesses to Units Space. */
-	if (a->offset < CSR_REGISTER_BASE + CSR_CONFIG_ROM_END)
+	if (a->offset < CSR_REGISTER_BASE + CSR_CONFIG_ROM_END) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	return init_request(client, a, LOCAL_BUS | 0x3f, SCODE_100);
 }

@@ -2222,8 +2222,11 @@ ieee80211_rx_h_defragment(struct ieee80211_rx_data *rx)
 
 static int ieee80211_802_1x_port_control(struct ieee80211_rx_data *rx)
 {
-	if (unlikely(!rx->sta || !test_sta_flag(rx->sta, WLAN_STA_AUTHORIZED)))
+	if (unlikely(!rx->sta || !test_sta_flag(rx->sta, WLAN_STA_AUTHORIZED))) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	return 0;
 }
@@ -2243,8 +2246,11 @@ static int ieee80211_drop_unencrypted(struct ieee80211_rx_data *rx, __le16 fc)
 	/* Drop unencrypted frames if key is set. */
 	if (unlikely(!ieee80211_has_protected(fc) &&
 		     !ieee80211_is_nullfunc(fc) &&
-		     ieee80211_is_data(fc) && rx->key))
+		     ieee80211_is_data(fc) && rx->key)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	return 0;
 }
@@ -2271,6 +2277,8 @@ static int ieee80211_drop_unencrypted_mgmt(struct ieee80211_rx_data *rx)
 				cfg80211_rx_unprot_mlme_mgmt(rx->sdata->dev,
 							     rx->skb->data,
 							     rx->skb->len);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		/* BIP does not use Protected field, so need to check MMIE */
@@ -2281,6 +2289,8 @@ static int ieee80211_drop_unencrypted_mgmt(struct ieee80211_rx_data *rx)
 				cfg80211_rx_unprot_mlme_mgmt(rx->sdata->dev,
 							     rx->skb->data,
 							     rx->skb->len);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		/*
@@ -2288,8 +2298,11 @@ static int ieee80211_drop_unencrypted_mgmt(struct ieee80211_rx_data *rx)
 		 * having configured keys.
 		 */
 		if (unlikely(ieee80211_is_action(fc) && !rx->key &&
-			     ieee80211_is_robust_mgmt_frame(rx->skb)))
+			     ieee80211_is_robust_mgmt_frame(rx->skb))) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 	}
 
 	return 0;

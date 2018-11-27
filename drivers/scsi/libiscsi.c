@@ -289,6 +289,8 @@ static int iscsi_check_tmf_restrictions(struct iscsi_task *task, int opcode)
 					  "rejected.\n",
 					  opcode, task->itt,
 					  task->hdr_itt);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		/*
@@ -301,6 +303,8 @@ static int iscsi_check_tmf_restrictions(struct iscsi_task *task, int opcode)
 					  "0x%x/0x%x] fast abort.\n",
 					  opcode, task->itt,
 					  task->hdr_itt);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		break;
@@ -318,6 +322,8 @@ static int iscsi_check_tmf_restrictions(struct iscsi_task *task, int opcode)
 					  "data-out due to abort task in "
 					  "progress\n", task->itt,
 					  task->hdr_itt);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		break;

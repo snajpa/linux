@@ -485,8 +485,11 @@ static int sel_mmap_policy(struct file *filp, struct vm_area_struct *vma)
 		/* do not allow mprotect to make mapping writable */
 		vma->vm_flags &= ~VM_MAYWRITE;
 
-		if (vma->vm_flags & VM_WRITE)
+		if (vma->vm_flags & VM_WRITE) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 	}
 
 	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;

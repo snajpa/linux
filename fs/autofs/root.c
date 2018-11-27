@@ -556,15 +556,21 @@ static int autofs_dir_symlink(struct inode *dir,
 
 	pr_debug("%s <- %pd\n", symname, dentry);
 
-	if (!autofs_oz_mode(sbi))
+	if (!autofs_oz_mode(sbi)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* autofs_oz_mode() needs to allow path walks when the
 	 * autofs mount is catatonic but the state of an autofs
 	 * file system needs to be preserved over restarts.
 	 */
-	if (sbi->catatonic)
+	if (sbi->catatonic) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	BUG_ON(!ino);
 
@@ -619,15 +625,21 @@ static int autofs_dir_unlink(struct inode *dir, struct dentry *dentry)
 	struct autofs_info *ino = autofs_dentry_ino(dentry);
 	struct autofs_info *p_ino;
 
-	if (!autofs_oz_mode(sbi))
+	if (!autofs_oz_mode(sbi)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* autofs_oz_mode() needs to allow path walks when the
 	 * autofs mount is catatonic but the state of an autofs
 	 * file system needs to be preserved over restarts.
 	 */
-	if (sbi->catatonic)
+	if (sbi->catatonic) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (atomic_dec_and_test(&ino->count)) {
 		p_ino = autofs_dentry_ino(dentry->d_parent);
@@ -707,15 +719,21 @@ static int autofs_dir_rmdir(struct inode *dir, struct dentry *dentry)
 
 	pr_debug("dentry %p, removing %pd\n", dentry, dentry);
 
-	if (!autofs_oz_mode(sbi))
+	if (!autofs_oz_mode(sbi)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* autofs_oz_mode() needs to allow path walks when the
 	 * autofs mount is catatonic but the state of an autofs
 	 * file system needs to be preserved over restarts.
 	 */
-	if (sbi->catatonic)
+	if (sbi->catatonic) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	spin_lock(&sbi->lookup_lock);
 	if (!simple_empty(dentry)) {
@@ -752,15 +770,21 @@ static int autofs_dir_mkdir(struct inode *dir,
 	struct autofs_info *p_ino;
 	struct inode *inode;
 
-	if (!autofs_oz_mode(sbi))
+	if (!autofs_oz_mode(sbi)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* autofs_oz_mode() needs to allow path walks when the
 	 * autofs mount is catatonic but the state of an autofs
 	 * file system needs to be preserved over restarts.
 	 */
-	if (sbi->catatonic)
+	if (sbi->catatonic) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	pr_debug("dentry %p, creating %pd\n", dentry, dentry);
 

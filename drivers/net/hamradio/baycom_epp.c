@@ -1043,8 +1043,11 @@ static int baycom_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 		break;
 
 	case HDLCDRVCTL_SETCHANNELPAR:
-		if (!capable(CAP_NET_ADMIN))
+		if (!capable(CAP_NET_ADMIN)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		bc->ch_params.tx_delay = hi.data.cp.tx_delay;
 		bc->ch_params.tx_tail = hi.data.cp.tx_tail;
 		bc->ch_params.slottime = hi.data.cp.slottime;
@@ -1064,8 +1067,11 @@ static int baycom_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 		break;
 
 	case HDLCDRVCTL_SETMODEMPAR:
-		if ((!capable(CAP_SYS_RAWIO)) || netif_running(dev))
+		if ((!capable(CAP_SYS_RAWIO)) || netif_running(dev)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		dev->base_addr = hi.data.mp.iobase;
 		dev->irq = /*hi.data.mp.irq*/0;
 		dev->dma = /*hi.data.mp.dma*/0;
@@ -1088,8 +1094,11 @@ static int baycom_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 		break;		
 
 	case HDLCDRVCTL_CALIBRATE:
-		if (!capable(CAP_SYS_RAWIO))
+		if (!capable(CAP_SYS_RAWIO)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		bc->hdlctx.calibrate = hi.data.calibrate * bc->bitrate / 8;
 		return 0;
 
@@ -1105,8 +1114,11 @@ static int baycom_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 		break;
 
 	case HDLCDRVCTL_SETMODE:
-		if (!capable(CAP_NET_ADMIN) || netif_running(dev))
+		if (!capable(CAP_NET_ADMIN) || netif_running(dev)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		hi.data.modename[sizeof(hi.data.modename)-1] = '\0';
 		return baycom_setmode(bc, hi.data.modename);
 

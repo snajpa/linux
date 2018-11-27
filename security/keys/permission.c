@@ -70,8 +70,11 @@ use_these_perms:
 
 	kperm = kperm & perm & KEY_NEED_ALL;
 
-	if (kperm != perm)
+	if (kperm != perm) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* let LSM be the final arbiter */
 	return security_key_permission(key_ref, cred, perm);

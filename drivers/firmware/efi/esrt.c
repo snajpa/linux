@@ -95,8 +95,11 @@ static ssize_t esre_attr_show(struct kobject *kobj,
 	struct esre_attribute *attr = to_attr(_attr);
 
 	/* Don't tell normal users what firmware versions we've got... */
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	return attr->show(entry, buf);
 }

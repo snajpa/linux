@@ -312,6 +312,8 @@ int amdgpu_gem_userptr_ioctl(struct drm_device *dev, void *data,
 	     !(args->flags & AMDGPU_GEM_USERPTR_REGISTER)) {
 
 		/* if we want to write to it we must install a MMU notifier */
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

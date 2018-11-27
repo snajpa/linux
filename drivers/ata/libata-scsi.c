@@ -811,13 +811,19 @@ int ata_sas_scsi_ioctl(struct ata_port *ap, struct scsi_device *scsidev,
 		return ata_get_identity(ap, scsidev, arg);
 
 	case HDIO_DRIVE_CMD:
-		if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO))
+		if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		return ata_cmd_ioctl(scsidev, arg);
 
 	case HDIO_DRIVE_TASK:
-		if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO))
+		if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		return ata_task_ioctl(scsidev, arg);
 
 	default:

@@ -63,8 +63,11 @@ static int memfd_open(const char *path, struct fuse_file_info *fi)
 	if (strcmp(path, memfd_path))
 		return -ENOENT;
 
-	if ((fi->flags & 3) != O_RDONLY)
+	if ((fi->flags & 3) != O_RDONLY) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* force direct-IO */
 	fi->direct_io = 1;

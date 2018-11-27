@@ -252,6 +252,8 @@ static int pc_clock_adjtime(clockid_t id, struct timex *tx)
 
 	if ((cd.fp->f_mode & FMODE_WRITE) == 0) {
 		err = -EACCES;
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		goto out;
 	}
 
@@ -314,6 +316,8 @@ static int pc_clock_settime(clockid_t id, const struct timespec64 *ts)
 
 	if ((cd.fp->f_mode & FMODE_WRITE) == 0) {
 		err = -EACCES;
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		goto out;
 	}
 

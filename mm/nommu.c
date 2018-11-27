@@ -921,18 +921,27 @@ static int validate_mmap_request(struct file *file,
 			capabilities &= ~NOMMU_MAP_COPY;
 
 		/* The file shall have been opened with read permission. */
-		if (!(file->f_mode & FMODE_READ))
+		if (!(file->f_mode & FMODE_READ)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 
 		if (flags & MAP_SHARED) {
 			/* do checks for writing, appending and locking */
 			if ((prot & PROT_WRITE) &&
-			    !(file->f_mode & FMODE_WRITE))
+			    !(file->f_mode & FMODE_WRITE)) {
+				printk("-EACCESS @ file %s line %d function %s\n",
+				       __FILE__, __LINE__, __FUNCTION__);
 				return -EACCES;
+			}
 
 			if (IS_APPEND(file_inode(file)) &&
-			    (file->f_mode & FMODE_WRITE))
+			    (file->f_mode & FMODE_WRITE)) {
+				printk("-EACCESS @ file %s line %d function %s\n",
+				       __FILE__, __LINE__, __FUNCTION__);
 				return -EACCES;
+			}
 
 			if (locks_verify_locked(file))
 				return -EAGAIN;

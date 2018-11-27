@@ -472,8 +472,11 @@ pdcspath_attr_store(struct kobject *kobj, struct attribute *attr,
 	struct pdcspath_attribute *pdcs_attr = to_pdcspath_attribute(attr);
 	ssize_t ret = 0;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (pdcs_attr->store)
 		ret = pdcs_attr->store(entry, buf, count);
@@ -760,8 +763,11 @@ static ssize_t pdcs_auto_write(struct kobject *kobj,
 	char in[8], *temp;
 	char c;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (!buf || !count)
 		return -EINVAL;
@@ -861,8 +867,11 @@ static ssize_t pdcs_osdep1_write(struct kobject *kobj,
 {
 	u8 in[16];
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (!buf || !count)
 		return -EINVAL;
@@ -900,8 +909,11 @@ static ssize_t pdcs_osdep2_write(struct kobject *kobj,
 	unsigned short i;
 	u8 in[4];
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (!buf || !count)
 		return -EINVAL;

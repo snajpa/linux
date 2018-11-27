@@ -1343,6 +1343,8 @@ static int h_24x7_event_init(struct perf_event *event)
 		pr_devel("hv permissions disallow: is_physical_domain:%d, lpar=0x%llx\n",
 				is_physical_domain(domain),
 				event_get_lpar(event));
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

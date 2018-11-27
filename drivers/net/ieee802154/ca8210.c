@@ -557,6 +557,8 @@ static int link_to_linux_err(int link_status)
 	case MAC_IMPROPER_SECURITY_LEVEL:
 	case MAC_UNSUPPORTED_LEGACY:
 	case MAC_DENIED:
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	case MAC_BEACON_LOST:
 	case MAC_NO_ACK:

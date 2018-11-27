@@ -85,8 +85,11 @@ int coda_permission(struct inode *inode, int mask)
 	if (!mask)
 		return 0;
 
-	if ((mask & MAY_EXEC) && !execute_ok(inode))
+	if ((mask & MAY_EXEC) && !execute_ok(inode)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (coda_cache_check(inode, mask))
 		return 0;

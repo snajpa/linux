@@ -7021,7 +7021,10 @@ static long DAC960_gam_ioctl(struct file *file, unsigned int Request,
 {
   long ErrorCode = 0;
   void __user *argp = (void __user *)Argument;
-  if (!capable(CAP_SYS_ADMIN)) return -EACCES;
+  if (!capable(CAP_SYS_ADMIN)) {printk("-EACCESS @ file %s line %d function %s\n",
+                                       __FILE__, __LINE__, __FUNCTION__);
+      return -EACCES;
+  }
 
   mutex_lock(&DAC960_mutex);
   switch (Request)

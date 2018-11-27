@@ -171,6 +171,8 @@ static int nfs4_map_errors(int err)
 	case -NFS4ERR_BADNAME:
 		return -EINVAL;
 	case -NFS4ERR_SHARE_DENIED:
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	case -NFS4ERR_MINOR_VERS_MISMATCH:
 		return -EPROTONOSUPPORT;
@@ -2492,6 +2494,8 @@ static int nfs4_opendata_access(struct rpc_cred *cred,
 	if ((mask & ~cache.mask & flags) == 0)
 		return 0;
 
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 }
 
@@ -3189,8 +3193,12 @@ static int nfs4_do_setattr(struct inode *inode, struct rpc_cred *cred,
 			}
 			if (state && !(state->state & FMODE_WRITE)) {
 				err = -EBADF;
-				if (sattr->ia_valid & ATTR_OPEN)
+				if (sattr->ia_valid & ATTR_OPEN) {
 					err = -EACCES;
+					printk("-EACCESS @ file %s line %d function %s\n",
+					       __FILE__, __LINE__,
+					       __FUNCTION__);
+				}
 				goto out;
 			}
 		}
@@ -3712,8 +3720,11 @@ static int nfs4_lookup_root_sec(struct nfs_server *server, struct nfs_fh *fhandl
 	struct rpc_auth *auth;
 
 	auth = rpcauth_create(&auth_args, server->client);
-	if (IS_ERR(auth))
+	if (IS_ERR(auth)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	return nfs4_lookup_root(server, fhandle, info);
 }
 

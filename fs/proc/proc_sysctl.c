@@ -439,6 +439,8 @@ static int test_perm(int mode, int op)
 		mode >>= 3;
 	if ((op & ~mode & (MAY_READ|MAY_WRITE|MAY_EXEC)) == 0)
 		return 0;
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 }
 
@@ -791,8 +793,11 @@ static int proc_sys_permission(struct inode *inode, int mask)
 	int error;
 
 	/* Executable files are not allowed under /proc/sys/ */
-	if ((mask & MAY_EXEC) && S_ISREG(inode->i_mode))
+	if ((mask & MAY_EXEC) && S_ISREG(inode->i_mode)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	head = grab_header(inode);
 	if (IS_ERR(head))

@@ -852,6 +852,8 @@ static int afiucv_path_connect(struct socket *sock, struct sockaddr *addr)
 			break;
 		case 0x0f:	/* Missing IUCV authorization */
 			err = -EACCES;
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			break;
 		default:
 			err = -ECONNREFUSED;

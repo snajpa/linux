@@ -40,6 +40,8 @@ static int amdgpu_ctx_priority_permit(struct drm_file *filp,
 	if (drm_is_current_master(filp))
 		return 0;
 
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 }
 

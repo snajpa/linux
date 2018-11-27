@@ -439,8 +439,11 @@ static int rtc_do_ioctl(unsigned int cmd, unsigned long arg, int kernel)
 		 * than 64Hz of interrupts on a multi-user machine.
 		 */
 		if (!kernel && (rtc_freq > rtc_max_user_freq) &&
-						(!capable(CAP_SYS_RESOURCE)))
+						(!capable(CAP_SYS_RESOURCE))) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 
 		spin_lock_irqsave(&rtc_lock, flags);
 		if (!(rtc_status & RTC_TIMER_ON)) {
@@ -540,8 +543,11 @@ static int rtc_do_ioctl(unsigned int cmd, unsigned long arg, int kernel)
 		unsigned int real_yrs;
 #endif
 
-		if (!capable(CAP_SYS_TIME))
+		if (!capable(CAP_SYS_TIME)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 
 		if (copy_from_user(&rtc_tm, (struct rtc_time __user *)arg,
 				   sizeof(struct rtc_time)))
@@ -650,8 +656,11 @@ static int rtc_do_ioctl(unsigned int cmd, unsigned long arg, int kernel)
 		 * than 64Hz of interrupts on a multi-user machine.
 		 */
 		if (!kernel && (arg > rtc_max_user_freq) &&
-					!capable(CAP_SYS_RESOURCE))
+					!capable(CAP_SYS_RESOURCE)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 
 		while (arg > (1<<tmp))
 			tmp++;
@@ -689,8 +698,11 @@ static int rtc_do_ioctl(unsigned int cmd, unsigned long arg, int kernel)
 		if (arg < 1900)
 			return -EINVAL;
 
-		if (!capable(CAP_SYS_TIME))
+		if (!capable(CAP_SYS_TIME)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 
 		epoch = arg;
 		return 0;

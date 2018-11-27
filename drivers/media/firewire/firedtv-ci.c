@@ -66,8 +66,11 @@ static int fdtv_ca_get_slot_info(struct firedtv *fdtv, void *arg)
 	if (err)
 		return err;
 
-	if (slot->num != 0)
+	if (slot->num != 0) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	slot->type = CA_CI;
 	slot->flags = fdtv_get_ca_flags(&stat);
@@ -117,6 +120,8 @@ static int fdtv_ca_get_msg(struct firedtv *fdtv, void *arg)
 			dev_info(fdtv->device, "unhandled CA message 0x%08x\n",
 				 fdtv->ca_last_command);
 			err = -EACCES;
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 		}
 	}
 	fdtv->ca_last_command = 0;
@@ -169,6 +174,8 @@ static int fdtv_ca_send_msg(struct firedtv *fdtv, void *arg)
 		dev_err(fdtv->device, "unhandled CA message 0x%08x\n",
 			fdtv->ca_last_command);
 		err = -EACCES;
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 	}
 	return err;
 }

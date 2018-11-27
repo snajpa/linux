@@ -1426,6 +1426,8 @@ static int vpfe_qbuf(struct file *file, void *priv,
 	 */
 	if (!fh->io_allowed) {
 		v4l2_err(&vpfe_dev->v4l2_dev, "fh->io_allowed\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -1483,6 +1485,8 @@ static int vpfe_streamon(struct file *file, void *priv,
 	/* If file handle is not allowed IO, return error */
 	if (!fh->io_allowed) {
 		v4l2_err(&vpfe_dev->v4l2_dev, "fh->io_allowed\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	/* If buffer queue is empty, return error */
@@ -1529,6 +1533,8 @@ static int vpfe_streamoff(struct file *file, void *priv,
 	/* If io is allowed for this file handle, return error */
 	if (!fh->io_allowed) {
 		v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "fh->io_allowed\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

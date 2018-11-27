@@ -552,8 +552,11 @@ static int vfio_iommu_type1_pin_pages(void *iommu_data,
 		return -EINVAL;
 
 	/* Supported for v2 version only */
-	if (!iommu->v2)
+	if (!iommu->v2) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	mutex_lock(&iommu->lock);
 
@@ -635,8 +638,11 @@ static int vfio_iommu_type1_unpin_pages(void *iommu_data,
 		return -EINVAL;
 
 	/* Supported for v2 version only */
-	if (!iommu->v2)
+	if (!iommu->v2) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	mutex_lock(&iommu->lock);
 

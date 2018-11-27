@@ -762,8 +762,11 @@ ssize_t proc_simple_write(struct file *f, const char __user *ubuf, size_t size,
 	char *buf;
 	int ret;
 
-	if (!pde->write)
+	if (!pde->write) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	if (size == 0 || size > PAGE_SIZE - 1)
 		return -EINVAL;
 	buf = memdup_user_nul(ubuf, size);

@@ -1179,8 +1179,11 @@ lpfc_selective_reset(struct lpfc_hba *phba)
 	int status = 0;
 	int rc;
 
-	if (!phba->cfg_enable_hba_reset)
+	if (!phba->cfg_enable_hba_reset) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (!(phba->pport->fc_flag & FC_OFFLINE_MODE)) {
 		status = lpfc_do_offline(phba, LPFC_EVT_OFFLINE);
@@ -1233,8 +1236,11 @@ lpfc_issue_reset(struct device *dev, struct device_attribute *attr,
 	struct lpfc_hba   *phba = vport->phba;
 	int status = -EINVAL;
 
-	if (!phba->cfg_enable_hba_reset)
+	if (!phba->cfg_enable_hba_reset) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (strncmp(buf, "selective", sizeof("selective") - 1) == 0)
 		status = phba->lpfc_selective_reset(phba);
@@ -1318,8 +1324,11 @@ lpfc_sli4_pdev_reg_request(struct lpfc_hba *phba, uint32_t opcode)
 	int status = 0, rc = 0;
 	int job_posted = 1, sriov_err;
 
-	if (!phba->cfg_enable_hba_reset)
+	if (!phba->cfg_enable_hba_reset) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if ((phba->sli_rev < LPFC_SLI_REV4) ||
 	    (bf_get(lpfc_sli_intf_if_type, &phba->sli4_hba.sli_intf) !=
@@ -2581,11 +2590,16 @@ lpfc_soft_wwpn_store(struct device *dev, struct device_attribute *attr,
 	u8 wwpn[WWN_SZ];
 	int rc;
 
-	if (!phba->cfg_enable_hba_reset)
+	if (!phba->cfg_enable_hba_reset) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	spin_lock_irq(&phba->hbalock);
 	if (phba->over_temp_state == HBA_OVER_TEMP) {
 		spin_unlock_irq(&phba->hbalock);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	spin_unlock_irq(&phba->hbalock);

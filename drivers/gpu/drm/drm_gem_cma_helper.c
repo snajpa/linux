@@ -385,6 +385,8 @@ unsigned long drm_gem_cma_get_unmapped_area(struct file *filp,
 
 	if (!drm_vma_node_is_allowed(node, priv)) {
 		drm_gem_object_put_unlocked(obj);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

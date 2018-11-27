@@ -2867,6 +2867,8 @@ static int read_properties_unlocked(struct drm_i915_private *dev_priv,
 			    !capable(CAP_SYS_ADMIN)) {
 				DRM_DEBUG("OA exponent would exceed the max sampling frequency (sysctl dev.i915.oa_max_sample_rate) %uHz without root privileges\n",
 					  i915_oa_max_sample_rate);
+				printk("-EACCESS @ file %s line %d function %s\n",
+				       __FILE__, __LINE__, __FUNCTION__);
 				return -EACCES;
 			}
 
@@ -3253,6 +3255,8 @@ int i915_perf_add_config_ioctl(struct drm_device *dev, void *data,
 
 	if (i915_perf_stream_paranoid && !capable(CAP_SYS_ADMIN)) {
 		DRM_DEBUG("Insufficient privileges to add i915 OA config\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -3399,6 +3403,8 @@ int i915_perf_remove_config_ioctl(struct drm_device *dev, void *data,
 
 	if (i915_perf_stream_paranoid && !capable(CAP_SYS_ADMIN)) {
 		DRM_DEBUG("Insufficient privileges to remove i915 OA config\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

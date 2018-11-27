@@ -82,6 +82,8 @@ static int dn_fib_rule_action(struct fib_rule *rule, struct flowi *flp,
 
 	case FR_ACT_PROHIBIT:
 		err = -EACCES;
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		goto errout;
 
 	case FR_ACT_BLACKHOLE:

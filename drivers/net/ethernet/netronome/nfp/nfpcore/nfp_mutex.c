@@ -271,8 +271,11 @@ int nfp_cpp_mutex_unlock(struct nfp_cpp_mutex *mutex)
 	if (err < 0)
 		return err;
 
-	if (value != nfp_mutex_locked(interface))
+	if (value != nfp_mutex_locked(interface)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	err = nfp_cpp_writel(cpp, muw, mutex->address,
 			     nfp_mutex_unlocked(interface));

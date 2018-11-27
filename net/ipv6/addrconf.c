@@ -1007,6 +1007,8 @@ ipv6_add_addr(struct inet6_dev *idev, struct ifa6_config *cfg,
 
 	if (idev->cnf.disable_ipv6) {
 		err = -EACCES;
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		goto out;
 	}
 

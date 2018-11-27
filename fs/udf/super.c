@@ -618,8 +618,11 @@ static int udf_remount_fs(struct super_block *sb, int *flags, char *options)
 	sync_filesystem(sb);
 	if (lvidiu) {
 		int write_rev = le16_to_cpu(lvidiu->minUDFWriteRev);
-		if (write_rev > UDF_MAX_WRITE_VERSION && !(*flags & SB_RDONLY))
+		if (write_rev > UDF_MAX_WRITE_VERSION && !(*flags & SB_RDONLY)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 	}
 
 	uopt.flags = sbi->s_flags;

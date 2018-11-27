@@ -591,8 +591,11 @@ int hsi_async(struct hsi_client *cl, struct hsi_msg *msg)
 {
 	struct hsi_port *port = hsi_get_port(cl);
 
-	if (!hsi_port_claimed(cl))
+	if (!hsi_port_claimed(cl)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	WARN_ON_ONCE(!msg->destructor || !msg->complete);
 	msg->cl = cl;
@@ -683,8 +686,11 @@ int hsi_register_port_event(struct hsi_client *cl,
 
 	if (!handler || cl->ehandler)
 		return -EINVAL;
-	if (!hsi_port_claimed(cl))
+	if (!hsi_port_claimed(cl)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	cl->ehandler = handler;
 	cl->nb.notifier_call = hsi_event_notifier_call;
 

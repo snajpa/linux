@@ -733,8 +733,11 @@ static int claimintf(struct usb_dev_state *ps, unsigned int ifnum)
 		return 0;
 
 	if (ps->privileges_dropped &&
-			!test_bit(ifnum, &ps->interface_allowed_mask))
+			!test_bit(ifnum, &ps->interface_allowed_mask)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	intf = usb_ifnum_to_if(dev, ifnum);
 	if (!intf)
@@ -1327,6 +1330,8 @@ static int proc_resetdevice(struct usb_dev_state *ps)
 				dev_warn(&ps->dev->dev,
 					"usbfs: interface %d claimed by %s while '%s' resets device\n",
 					number,	interface->dev.driver->name, current->comm);
+				printk("-EACCESS @ file %s line %d function %s\n",
+				       __FILE__, __LINE__, __FUNCTION__);
 				return -EACCES;
 			}
 		}
@@ -2130,8 +2135,11 @@ static int proc_ioctl(struct usb_dev_state *ps, struct usbdevfs_ioctl *ctl)
 	struct usb_interface    *intf = NULL;
 	struct usb_driver       *driver = NULL;
 
-	if (ps->privileges_dropped)
+	if (ps->privileges_dropped) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* alloc buffer */
 	size = _IOC_SIZE(ctl->ioctl_code);
@@ -2282,8 +2290,11 @@ static int proc_disconnect_claim(struct usb_dev_state *ps, void __user *arg)
 	if (intf->dev.driver) {
 		struct usb_driver *driver = to_usb_driver(intf->dev.driver);
 
-		if (ps->privileges_dropped)
+		if (ps->privileges_dropped) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 
 		if ((dc.flags & USBDEVFS_DISCONNECT_CLAIM_IF_DRIVER) &&
 				strncmp(dc.driver, intf->dev.driver->name,

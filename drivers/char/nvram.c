@@ -295,8 +295,11 @@ static long nvram_ioctl(struct file *file, unsigned int cmd,
 
 	case NVRAM_INIT:
 		/* initialize NVRAM contents and checksum */
-		if (!capable(CAP_SYS_ADMIN))
+		if (!capable(CAP_SYS_ADMIN)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 
 		mutex_lock(&nvram_mutex);
 		spin_lock_irq(&rtc_lock);
@@ -312,8 +315,11 @@ static long nvram_ioctl(struct file *file, unsigned int cmd,
 	case NVRAM_SETCKS:
 		/* just set checksum, contents unchanged (maybe useful after
 		 * checksum garbaged somehow...) */
-		if (!capable(CAP_SYS_ADMIN))
+		if (!capable(CAP_SYS_ADMIN)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 
 		mutex_lock(&nvram_mutex);
 		spin_lock_irq(&rtc_lock);

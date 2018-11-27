@@ -448,6 +448,8 @@ static int pn544_hci_i2c_fw_read_status(struct pn544_i2c_phy *phy)
 	case PN544_FW_CMD_RESULT_BAD_CRC:
 		return -ENODATA;
 	case PN544_FW_CMD_RESULT_ACCESS_DENIED:
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	case PN544_FW_CMD_RESULT_PROTOCOL_ERROR:
 		return -EPROTO;
@@ -464,6 +466,8 @@ static int pn544_hci_i2c_fw_read_status(struct pn544_i2c_phy *phy)
 	case PN544_FW_CMD_RESULT_MEMORY_ERROR:
 		return -ENOMEM;
 	case PN544_FW_CMD_RESULT_COMMAND_REJECTED:
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	case PN544_FW_CMD_RESULT_WRITE_FAILED:
 	case PN544_FW_CMD_RESULT_CHUNK_ERROR:

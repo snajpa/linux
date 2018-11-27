@@ -361,13 +361,19 @@ static int afs_do_setlk_check(struct afs_vnode *vnode, struct key *key,
 	 * share a read lock that we already have, we won't go the server.
 	 */
 	if (type == AFS_LOCK_READ) {
-		if (!(access & (AFS_ACE_INSERT | AFS_ACE_WRITE | AFS_ACE_LOCK)))
+		if (!(access & (AFS_ACE_INSERT | AFS_ACE_WRITE | AFS_ACE_LOCK))) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		if (vnode->status.lock_count == -1 && !can_sleep)
 			return -EAGAIN; /* Write locked */
 	} else {
-		if (!(access & (AFS_ACE_INSERT | AFS_ACE_WRITE)))
+		if (!(access & (AFS_ACE_INSERT | AFS_ACE_WRITE))) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		if (vnode->status.lock_count != 0 && !can_sleep)
 			return -EAGAIN; /* Locked */
 	}

@@ -69,8 +69,11 @@ static int mtdchar_open(struct inode *inode, struct file *file)
 	pr_debug("MTD_open\n");
 
 	/* You can't open the RO devices RW */
-	if ((file->f_mode & FMODE_WRITE) && (minor & 1))
+	if ((file->f_mode & FMODE_WRITE) && (minor & 1)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	mutex_lock(&mtd_mutex);
 	mtd = get_mtd_device(NULL, devnum);

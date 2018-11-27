@@ -746,8 +746,11 @@ static int dn_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 		return -EINVAL;
 
 	if (!capable(CAP_NET_BIND_SERVICE) && (saddr->sdn_objnum ||
-	    (saddr->sdn_flags & SDF_WILD)))
+	    (saddr->sdn_flags & SDF_WILD))) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (!(saddr->sdn_flags & SDF_WILD)) {
 		if (le16_to_cpu(saddr->sdn_nodeaddrl)) {

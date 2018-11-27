@@ -320,8 +320,11 @@ static int ptrace_setwmmxregs(struct task_struct *tsk, void __user *ufp)
 {
 	struct thread_info *thread = task_thread_info(tsk);
 
-	if (!test_ti_thread_flag(thread, TIF_USING_IWMMXT))
+	if (!test_ti_thread_flag(thread, TIF_USING_IWMMXT)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	iwmmxt_task_release(thread);  /* force a reload */
 	return copy_from_user(&thread->fpstate.iwmmxt, ufp, IWMMXT_SIZE)
 		? -EFAULT : 0;

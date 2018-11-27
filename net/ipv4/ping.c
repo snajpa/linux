@@ -802,6 +802,8 @@ static int ping_v4_sendmsg(struct sock *sk, struct msghdr *msg, size_t len)
 	}
 
 	err = -EACCES;
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	if ((rt->rt_flags & RTCF_BROADCAST) &&
 	    !sock_flag(sk, SOCK_BROADCAST))
 		goto out;

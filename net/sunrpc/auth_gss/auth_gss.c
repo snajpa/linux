@@ -659,6 +659,8 @@ retry:
 	/* if gssd is down, just skip upcalling altogether */
 	if (!gssd_running(net)) {
 		warn_gssd();
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	gss_msg = gss_setup_upcall(gss_auth, cred);
@@ -668,6 +670,8 @@ retry:
 		if (sn->pipe_version < 0) {
 			warn_gssd();
 			err = -EACCES;
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 		}
 		if (err < 0)
 			goto out;

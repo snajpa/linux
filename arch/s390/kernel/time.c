@@ -378,8 +378,11 @@ int get_phys_clock(unsigned long *clock)
 		return 0;
 	if (!test_bit(CLOCK_SYNC_HAS_STP, &clock_sync_flags))
 		return -EOPNOTSUPP;
-	if (!test_bit(CLOCK_SYNC_STP, &clock_sync_flags))
+	if (!test_bit(CLOCK_SYNC_STP, &clock_sync_flags)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	return -EAGAIN;
 }
 EXPORT_SYMBOL(get_phys_clock);

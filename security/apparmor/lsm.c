@@ -454,8 +454,11 @@ static int common_file_perm(const char *op, struct file *file, u32 mask)
 	int error = 0;
 
 	/* don't reaudit files closed during inheritance */
-	if (file->f_path.dentry == aa_null.dentry)
+	if (file->f_path.dentry == aa_null.dentry) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	label = __begin_current_label_crit_section();
 	error = aa_file_perm(op, label, file, mask);

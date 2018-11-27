@@ -1034,6 +1034,8 @@ SYSCALL_DEFINE2(setpgid, pid_t, pid, pid_t, pgid)
 		if (task_session(p) != task_session(group_leader))
 			goto out;
 		err = -EACCES;
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		if (!(p->flags & PF_FORKNOEXEC))
 			goto out;
 	} else {
@@ -1833,6 +1835,8 @@ static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
 	 * overall picture.
 	 */
 	err = -EACCES;
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	if (!S_ISREG(inode->i_mode) || path_noexec(&exe.file->f_path))
 		goto exit;
 

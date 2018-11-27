@@ -205,6 +205,8 @@ static int ina209_to_reg(u8 reg, u16 old, long val)
 	}
 
 	/* Other registers are read-only, return access error */
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 }
 

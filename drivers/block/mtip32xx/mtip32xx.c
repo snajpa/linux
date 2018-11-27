@@ -3340,8 +3340,11 @@ static int mtip_block_ioctl(struct block_device *dev,
 {
 	struct driver_data *dd = dev->bd_disk->private_data;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (!dd)
 		return -ENOTTY;
@@ -3378,8 +3381,11 @@ static int mtip_block_compat_ioctl(struct block_device *dev,
 {
 	struct driver_data *dd = dev->bd_disk->private_data;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (!dd)
 		return -ENOTTY;

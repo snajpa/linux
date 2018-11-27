@@ -86,6 +86,8 @@ static int hfsplus_ioctl_setflags(struct file *file, int __user *user_flags)
 
 	if (!inode_owner_or_capable(inode)) {
 		err = -EACCES;
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		goto out_drop_write;
 	}
 

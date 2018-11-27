@@ -7051,8 +7051,11 @@ static int megasas_mgmt_open(struct inode *inode, struct file *filep)
 	/*
 	 * Allow only those users with admin rights
 	 */
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	return 0;
 }

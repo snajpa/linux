@@ -213,6 +213,8 @@ static int acct_on(struct filename *pathname)
 	if (!S_ISREG(file_inode(file)->i_mode)) {
 		kfree(acct);
 		filp_close(file, NULL);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

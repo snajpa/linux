@@ -680,6 +680,8 @@ static int _autofs_dev_ioctl(unsigned int command,
 		if (!autofs_oz_mode(sbi) &&
 		    cmd != AUTOFS_DEV_IOCTL_CATATONIC_CMD) {
 			err = -EACCES;
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			fput(fp);
 			goto out;
 		}

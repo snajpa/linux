@@ -1258,6 +1258,9 @@ static int audit_receive_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
 				if (pid_vnr(req_pid) != auditd_pid) {
 					audit_log_config_change("audit_pid",
 							new_pid, auditd_pid, 0);
+					printk("-EACCESS @ file %s line %d function %s\n",
+					       __FILE__, __LINE__,
+					       __FUNCTION__);
 					return -EACCES;
 				}
 			}

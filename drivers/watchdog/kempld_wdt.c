@@ -305,8 +305,11 @@ static int kempld_wdt_start(struct watchdog_device *wdd)
 	kempld_release_mutex(pld);
 
 	/* Check if the watchdog was enabled */
-	if (!(status & KEMPLD_WDT_CFG_ENABLE))
+	if (!(status & KEMPLD_WDT_CFG_ENABLE)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	return 0;
 }
@@ -325,8 +328,11 @@ static int kempld_wdt_stop(struct watchdog_device *wdd)
 	kempld_release_mutex(pld);
 
 	/* Check if the watchdog was disabled */
-	if (status & KEMPLD_WDT_CFG_ENABLE)
+	if (status & KEMPLD_WDT_CFG_ENABLE) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	return 0;
 }

@@ -1033,6 +1033,8 @@ int drm_gem_mmap(struct file *filp, struct vm_area_struct *vma)
 
 	if (!drm_vma_node_is_allowed(node, priv)) {
 		drm_gem_object_put_unlocked(obj);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

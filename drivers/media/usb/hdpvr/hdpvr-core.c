@@ -202,8 +202,11 @@ static int hdpvr_device_init(struct hdpvr_device *dev)
 	int ret;
 	u8 *buf;
 
-	if (device_authorization(dev))
+	if (device_authorization(dev)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* default options for init */
 	hdpvr_set_options(dev);

@@ -4641,8 +4641,11 @@ static int scsi_debug_write_info(struct Scsi_Host *host, char *buffer,
 	int opts;
 	int minLen = length > 15 ? 15 : length;
 
-	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO))
+	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	memcpy(arr, buffer, minLen);
 	arr[minLen] = '\0';
 	if (1 != sscanf(arr, "%d", &opts))

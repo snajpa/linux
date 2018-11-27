@@ -479,8 +479,11 @@ static int ser12_open(struct net_device *dev)
 	if (!dev->base_addr || dev->base_addr > 0x1000-SER12_EXTENT ||
 	    dev->irq < 2 || dev->irq > 15)
 		return -ENXIO;
-	if (!request_region(dev->base_addr, SER12_EXTENT, "baycom_ser12"))
+	if (!request_region(dev->base_addr, SER12_EXTENT, "baycom_ser12")) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	memset(&bc->modem, 0, sizeof(bc->modem));
 	bc->hdrv.par.bitrate = 1200;
 	if ((u = ser12_check_uart(dev->base_addr)) == c_uart_unknown) {
@@ -594,8 +597,11 @@ static int baycom_ioctl(struct net_device *dev, struct ifreq *ifr,
 		return 0;
 
 	case HDLCDRVCTL_SETMODE:
-		if (netif_running(dev) || !capable(CAP_NET_ADMIN))
+		if (netif_running(dev) || !capable(CAP_NET_ADMIN)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		hi->data.modename[sizeof(hi->data.modename)-1] = '\0';
 		return baycom_setmode(bc, hi->data.modename);
 

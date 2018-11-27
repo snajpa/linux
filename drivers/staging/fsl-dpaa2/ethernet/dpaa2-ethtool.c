@@ -110,6 +110,8 @@ dpaa2_eth_set_link_ksettings(struct net_device *net_dev,
 				   DPNI_DYNAMIC_LINK_SET_VER_MINOR) < 0) {
 		if (netif_running(net_dev)) {
 			netdev_info(net_dev, "Interface must be brought down first.\n");
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 	}

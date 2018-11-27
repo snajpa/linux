@@ -1061,8 +1061,11 @@ static int ax25_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 		call = user->call;
 		ax25_uid_put(user);
 	} else {
-		if (ax25_uid_policy && !capable(CAP_NET_ADMIN))
+		if (ax25_uid_policy && !capable(CAP_NET_ADMIN)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 
 		call = addr->fsa_ax25.sax25_call;
 	}

@@ -3226,8 +3226,11 @@ static int cma_use_port(enum rdma_ucm_port_space ps,
 	int ret;
 
 	snum = ntohs(cma_port(cma_src_addr(id_priv)));
-	if (snum < PROT_SOCK && !capable(CAP_NET_BIND_SERVICE))
+	if (snum < PROT_SOCK && !capable(CAP_NET_BIND_SERVICE)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	bind_list = cma_ps_find(id_priv->id.route.addr.dev_addr.net, ps, snum);
 	if (!bind_list) {

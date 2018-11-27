@@ -1485,8 +1485,11 @@ int __must_check pci_create_sysfs_dev_files(struct pci_dev *pdev)
 	int rom_size;
 	struct bin_attribute *attr;
 
-	if (!sysfs_initialized)
+	if (!sysfs_initialized) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (pdev->cfg_size > PCI_CFG_SPACE_SIZE)
 		retval = sysfs_create_bin_file(&pdev->dev.kobj, &pcie_config_attr);

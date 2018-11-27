@@ -2755,8 +2755,11 @@ int emulate_loadstore(struct pt_regs *regs, struct instruction_op *op)
 
 	switch (type) {
 	case LARX:
-		if (ea & (size - 1))
-			return -EACCES;		/* can't handle misaligned */
+		if (ea & (size - 1)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
+			return -EACCES;
+		}		/* can't handle misaligned */
 		if (!address_ok(regs, ea, size))
 			return -EFAULT;
 		err = 0;
@@ -2793,8 +2796,11 @@ int emulate_loadstore(struct pt_regs *regs, struct instruction_op *op)
 		break;
 
 	case STCX:
-		if (ea & (size - 1))
-			return -EACCES;		/* can't handle misaligned */
+		if (ea & (size - 1)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
+			return -EACCES;
+		}		/* can't handle misaligned */
 		if (!address_ok(regs, ea, size))
 			return -EFAULT;
 		err = 0;

@@ -851,8 +851,11 @@ int do_remount_sb(struct super_block *sb, int sb_flags, void *data, int force)
 		return -EBUSY;
 
 #ifdef CONFIG_BLOCK
-	if (!(sb_flags & SB_RDONLY) && bdev_read_only(sb->s_bdev))
+	if (!(sb_flags & SB_RDONLY) && bdev_read_only(sb->s_bdev)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 #endif
 
 	remount_ro = (sb_flags & SB_RDONLY) && !sb_rdonly(sb);

@@ -468,8 +468,11 @@ EXPORT_SYMBOL(ttm_bo_mmap);
 
 int ttm_fbdev_mmap(struct vm_area_struct *vma, struct ttm_buffer_object *bo)
 {
-	if (vma->vm_pgoff != 0)
+	if (vma->vm_pgoff != 0) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	ttm_bo_get(bo);
 

@@ -431,8 +431,11 @@ int dn_dev_ioctl(unsigned int cmd, void __user *arg)
 	case SIOCGIFADDR:
 		break;
 	case SIOCSIFADDR:
-		if (!capable(CAP_NET_ADMIN))
+		if (!capable(CAP_NET_ADMIN)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		if (sdn->sdn_family != AF_DECnet)
 			return -EINVAL;
 		break;

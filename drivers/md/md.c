@@ -3388,8 +3388,11 @@ rdev_attr_store(struct kobject *kobj, struct attribute *attr,
 
 	if (!entry->store)
 		return -EIO;
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	rv = mddev ? mddev_lock(mddev): -EBUSY;
 	if (!rv) {
 		if (rdev->mddev == NULL)
@@ -5194,8 +5197,11 @@ md_attr_store(struct kobject *kobj, struct attribute *attr,
 
 	if (!entry->store)
 		return -EIO;
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	spin_lock(&all_mddevs_lock);
 	if (list_empty(&mddev->all_mddevs)) {
 		spin_unlock(&all_mddevs_lock);
@@ -7135,8 +7141,11 @@ static int md_ioctl(struct block_device *bdev, fmode_t mode,
 	case GET_DISK_INFO:
 		break;
 	default:
-		if (!capable(CAP_SYS_ADMIN))
+		if (!capable(CAP_SYS_ADMIN)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 	}
 
 	/*

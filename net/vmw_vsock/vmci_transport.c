@@ -1659,8 +1659,11 @@ static int vmci_transport_dgram_bind(struct vsock_sock *vsk,
 	port = addr->svm_port == VMADDR_PORT_ANY ?
 			VMCI_INVALID_ID : addr->svm_port;
 
-	if (port <= LAST_RESERVED_PORT && !capable(CAP_NET_BIND_SERVICE))
+	if (port <= LAST_RESERVED_PORT && !capable(CAP_NET_BIND_SERVICE)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	flags = addr->svm_cid == VMADDR_CID_ANY ?
 				VMCI_FLAG_ANYCID_DG_HND : 0;

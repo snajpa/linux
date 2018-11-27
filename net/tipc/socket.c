@@ -772,8 +772,11 @@ static int tipc_sendmcast(struct  socket *sock, struct tipc_name_seq *seq,
 	struct tipc_nlist dsts;
 	int rc;
 
-	if (tsk->group)
+	if (tsk->group) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* Block or return if any destination link is congested */
 	rc = tipc_wait_for_cond(sock, &timeout, !tsk->cong_link_cnt);
@@ -2772,12 +2775,18 @@ static int tipc_sk_join(struct tipc_sock *tsk, struct tipc_group_req *mreq)
 	struct tipc_name_seq seq;
 	int rc;
 
-	if (mreq->type < TIPC_RESERVED_TYPES)
+	if (mreq->type < TIPC_RESERVED_TYPES) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	if (mreq->scope > TIPC_NODE_SCOPE)
 		return -EINVAL;
-	if (grp)
+	if (grp) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	grp = tipc_group_create(net, tsk->portid, mreq, &tsk->group_is_open);
 	if (!grp)
 		return -ENOMEM;

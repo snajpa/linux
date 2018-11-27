@@ -2313,8 +2313,11 @@ scsi_ioctl_reset(struct scsi_device *dev, int __user *arg)
 	unsigned long flags;
 	int error = 0, rtn, val;
 
-	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO))
+	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	error = get_user(val, arg);
 	if (error)

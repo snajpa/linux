@@ -1145,21 +1145,33 @@ static int cosa_ioctl_common(struct cosa_data *cosa,
 	void __user *argp = (void __user *)arg;
 	switch (cmd) {
 	case COSAIORSET:	/* Reset the device */
-		if (!capable(CAP_NET_ADMIN))
+		if (!capable(CAP_NET_ADMIN)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		return cosa_reset(cosa);
 	case COSAIOSTRT:	/* Start the firmware */
-		if (!capable(CAP_SYS_RAWIO))
+		if (!capable(CAP_SYS_RAWIO)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		return cosa_start(cosa, arg);
 	case COSAIODOWNLD:	/* Download the firmware */
-		if (!capable(CAP_SYS_RAWIO))
+		if (!capable(CAP_SYS_RAWIO)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		
 		return cosa_download(cosa, argp);
 	case COSAIORMEM:
-		if (!capable(CAP_SYS_RAWIO))
+		if (!capable(CAP_SYS_RAWIO)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		return cosa_readmem(cosa, argp);
 	case COSAIORTYPE:
 		return cosa_gettype(cosa, argp);
@@ -1170,8 +1182,11 @@ static int cosa_ioctl_common(struct cosa_data *cosa,
 	case COSAIONRCHANS:
 		return cosa->nchannels;
 	case COSAIOBMSET:
-		if (!capable(CAP_SYS_RAWIO))
+		if (!capable(CAP_SYS_RAWIO)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		if (is_8bit(cosa))
 			return -EINVAL;
 		if (arg != COSA_BM_OFF && arg != COSA_BM_ON)

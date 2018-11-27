@@ -699,8 +699,11 @@ static int ur_open(struct inode *inode, struct file *file)
 
 	accmode = file->f_flags & O_ACCMODE;
 
-	if (accmode == O_RDWR)
+	if (accmode == O_RDWR) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	/*
 	 * We treat the minor number as the devno of the ur device
 	 * to find in the driver tree.

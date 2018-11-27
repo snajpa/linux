@@ -1728,6 +1728,8 @@ static int nfs_verify_authflavors(struct nfs_parsed_mount_data *args,
 
 	dfprintk(MOUNT,
 		 "NFS: specified auth flavors not supported by server\n");
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 
 out:

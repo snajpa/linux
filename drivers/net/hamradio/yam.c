@@ -864,6 +864,8 @@ static int yam_open(struct net_device *dev)
 	if (!request_region(dev->base_addr, YAM_EXTENT, dev->name))
 	{
 		printk(KERN_ERR "%s: cannot 0x%lx busy\n", dev->name, dev->base_addr);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	if ((u = yam_check_uart(dev->base_addr)) == c_uart_unknown) {

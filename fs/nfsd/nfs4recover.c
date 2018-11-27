@@ -1204,6 +1204,8 @@ nfsd4_umh_cltrack_upcall(char *cmd, char *arg, char *env0, char *env1)
 
 	if (unlikely(!cltrack_prog[0])) {
 		dprintk("%s: cltrack_prog is disabled\n", __func__);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

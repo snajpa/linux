@@ -1830,8 +1830,11 @@ static int ctl_ioctl(struct file *file, uint command, struct dm_ioctl __user *us
 	struct dm_ioctl param_kernel;
 
 	/* only root can play with this */
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (_IOC_TYPE(command) != DM_IOCTL)
 		return -ENOTTY;

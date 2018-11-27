@@ -47,8 +47,11 @@ static ssize_t iscsi_boot_show_attribute(struct kobject *kobj,
 	ssize_t ret = -EIO;
 	char *str = buf;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (boot_kobj->show)
 		ret = boot_kobj->show(boot_kobj->data, boot_attr->type, str);

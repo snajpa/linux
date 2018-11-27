@@ -1681,6 +1681,8 @@ static int do_cmd_ioctl(struct comedi_device *dev,
 	/* are we locked? (ioctl lock) */
 	if (s->lock && s->lock != file) {
 		dev_dbg(dev->class_dev, "subdevice locked\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -1866,8 +1868,11 @@ static int do_unlock_ioctl(struct comedi_device *dev, unsigned long arg,
 	if (s->busy)
 		return -EBUSY;
 
-	if (s->lock && s->lock != file)
+	if (s->lock && s->lock != file) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (s->lock == file)
 		s->lock = NULL;

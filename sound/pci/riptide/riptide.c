@@ -690,15 +690,21 @@ static int senddata(struct cmdif *cif, const unsigned char *in, u32 offset)
 
 	i = atoh(&in[1], 2);
 	addr = offset + atoh(&in[3], 4);
-	if (SEND_SMEM(cif, 0, addr) != 0)
+	if (SEND_SMEM(cif, 0, addr) != 0) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	p = in + 9;
 	while (i) {
 		data = atoh(p, 8);
 		if (SEND_WMEM(cif, 2,
 			      ((data & 0x0f0f0f0f) << 4) | ((data & 0xf0f0f0f0)
-							    >> 4)))
+							    >> 4))) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		i -= 4;
 		p += 8;
 	}
@@ -729,8 +735,12 @@ static int loadfirmware(struct cmdif *cif, const unsigned char *img,
 				break;
 			case EXT_GOTO_CMD_REC:
 				val = atoh(&in[9], 8);
-				if (SEND_GOTO(cif, val) != 0)
+				if (SEND_GOTO(cif, val) != 0) {
 					err = -EACCES;
+					printk("-EACCESS @ file %s line %d function %s\n",
+					       __FILE__, __LINE__,
+					       __FUNCTION__);
+				}
 				break;
 			case EXT_END_OF_FILE:
 				size = 0;

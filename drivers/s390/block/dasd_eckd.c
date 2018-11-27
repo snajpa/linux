@@ -1179,6 +1179,8 @@ static int verify_fcx_max_data(struct dasd_device *device, __u8 lpm)
 				 "on a new path %x is below the active maximum "
 				 "%u\n", fcx_max_data, lpm,
 				 private->fcx_max_data);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 	}
@@ -4107,8 +4109,11 @@ dasd_eckd_release(struct dasd_device *device)
 	struct ccw1 *ccw;
 	int useglobal;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	useglobal = 0;
 	cqr = dasd_smalloc_request(DASD_ECKD_MAGIC, 1, 32, device, NULL);
@@ -4162,8 +4167,11 @@ dasd_eckd_reserve(struct dasd_device *device)
 	struct ccw1 *ccw;
 	int useglobal;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	useglobal = 0;
 	cqr = dasd_smalloc_request(DASD_ECKD_MAGIC, 1, 32, device, NULL);
@@ -4216,8 +4224,11 @@ dasd_eckd_steal_lock(struct dasd_device *device)
 	struct ccw1 *ccw;
 	int useglobal;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	useglobal = 0;
 	cqr = dasd_smalloc_request(DASD_ECKD_MAGIC, 1, 32, device, NULL);
@@ -4272,8 +4283,11 @@ static int dasd_eckd_snid(struct dasd_device *device,
 	int useglobal;
 	struct dasd_snid_ioctl_data usrparm;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (copy_from_user(&usrparm, argp, sizeof(usrparm)))
 		return -EFAULT;
@@ -4400,8 +4414,11 @@ dasd_eckd_get_attrib(struct dasd_device *device, void __user *argp)
 	struct attrib_data_t attrib = private->attrib;
 	int rc;
 
-        if (!capable(CAP_SYS_ADMIN))
+        if (!capable(CAP_SYS_ADMIN)) {
+                printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
                 return -EACCES;
+	}
 	if (!argp)
                 return -EINVAL;
 
@@ -4423,8 +4440,11 @@ dasd_eckd_set_attrib(struct dasd_device *device, void __user *argp)
 	struct dasd_eckd_private *private = device->private;
 	struct attrib_data_t attrib;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	if (!argp)
 		return -EINVAL;
 
@@ -4451,8 +4471,11 @@ static int dasd_symm_io(struct dasd_device *device, void __user *argp)
 	char psf0, psf1;
 	int rc;
 
-	if (!capable(CAP_SYS_ADMIN) && !capable(CAP_SYS_RAWIO))
+	if (!capable(CAP_SYS_ADMIN) && !capable(CAP_SYS_RAWIO)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	psf0 = psf1 = 0;
 
 	/* Copy parms from caller */

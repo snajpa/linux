@@ -87,8 +87,11 @@ static ssize_t spufs_attr_read(struct file *file, char __user *buf,
 	ssize_t ret;
 
 	attr = file->private_data;
-	if (!attr->get)
+	if (!attr->get) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	ret = mutex_lock_interruptible(&attr->mutex);
 	if (ret)
@@ -121,8 +124,11 @@ static ssize_t spufs_attr_write(struct file *file, const char __user *buf,
 	ssize_t ret;
 
 	attr = file->private_data;
-	if (!attr->set)
+	if (!attr->set) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	ret = mutex_lock_interruptible(&attr->mutex);
 	if (ret)
@@ -272,8 +278,11 @@ static int spufs_mem_mmap_access(struct vm_area_struct *vma,
 	unsigned long offset = address - vma->vm_start;
 	char *local_store;
 
-	if (write && !(vma->vm_flags & VM_WRITE))
+	if (write && !(vma->vm_flags & VM_WRITE)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	if (spu_acquire(ctx))
 		return -EINTR;
 	if ((offset + len) > vma->vm_end)

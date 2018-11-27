@@ -3274,8 +3274,11 @@ static int cxlflash_chr_open(struct inode *inode, struct file *file)
 {
 	struct cxlflash_cfg *cfg;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	cfg = container_of(inode->i_cdev, struct cxlflash_cfg, cdev);
 	file->private_data = cfg;

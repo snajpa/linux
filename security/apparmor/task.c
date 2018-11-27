@@ -135,6 +135,8 @@ int aa_set_current_hat(struct aa_label *label, u64 token)
 	} else {
 		/* previous_profile && ctx->token != token */
 		abort_creds(new);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -161,8 +163,11 @@ int aa_restore_previous_label(u64 token)
 	struct aa_task_ctx *ctx = task_ctx(current);
 	struct cred *new;
 
-	if (ctx->token != token)
+	if (ctx->token != token) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	/* ignore restores when there is no saved label */
 	if (!ctx->previous)
 		return 0;

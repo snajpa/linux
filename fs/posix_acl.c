@@ -379,8 +379,12 @@ posix_acl_permission(struct inode *inode, const struct posix_acl *acl, int want)
                         case ACL_MASK:
                                 break;
                         case ACL_OTHER:
-				if (found)
+				if (found) {
+					printk("-EACCESS @ file %s line %d function %s\n",
+					       __FILE__, __LINE__,
+					       __FUNCTION__);
 					return -EACCES;
+				}
 				else
 					goto check_perm;
 			default:
@@ -394,6 +398,8 @@ mask:
 		if (mask_obj->e_tag == ACL_MASK) {
 			if ((pa->e_perm & mask_obj->e_perm & want) == want)
 				return 0;
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 	}
@@ -401,6 +407,8 @@ mask:
 check_perm:
 	if ((pa->e_perm & want) == want)
 		return 0;
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 }
 

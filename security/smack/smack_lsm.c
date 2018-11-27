@@ -1227,8 +1227,11 @@ static int smack_inode_permission(struct inode *inode, int mask)
 		return 0;
 
 	if (sbsp->smk_flags & SMK_SB_UNTRUSTED) {
-		if (smk_of_inode(inode) != sbsp->smk_root)
+		if (smk_of_inode(inode) != sbsp->smk_root) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 	}
 
 	/* May be droppable after audit */
@@ -1740,8 +1743,11 @@ static int smack_mmap_file(struct file *file,
 		return 0;
 	sbsp = file_inode(file)->i_sb->s_security;
 	if (sbsp->smk_flags & SMK_SB_UNTRUSTED &&
-	    isp->smk_mmap != sbsp->smk_root)
+	    isp->smk_mmap != sbsp->smk_root) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	mkp = isp->smk_mmap;
 
 	tsp = current_security();
@@ -4338,8 +4344,11 @@ static int smack_key_permission(key_ref_t key_ref,
 	/*
 	 * This should not occur
 	 */
-	if (tkp == NULL)
+	if (tkp == NULL) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (smack_privileged_cred(CAP_MAC_OVERRIDE, cred))
 		return 0;

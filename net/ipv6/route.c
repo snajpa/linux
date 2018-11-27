@@ -3112,6 +3112,8 @@ static struct fib6_info *ip6_route_info_create(struct fib6_config *cfg,
 	if (idev->cnf.disable_ipv6) {
 		NL_SET_ERR_MSG(extack, "IPv6 is disabled on nexthop device");
 		err = -EACCES;
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		goto out;
 	}
 

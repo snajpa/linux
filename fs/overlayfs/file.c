@@ -383,8 +383,11 @@ static long ovl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		break;
 
 	case FS_IOC_SETFLAGS:
-		if (!inode_owner_or_capable(inode))
+		if (!inode_owner_or_capable(inode)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 
 		ret = mnt_want_write_file(file);
 		if (ret)

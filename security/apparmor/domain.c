@@ -167,13 +167,18 @@ next:
 	}
 	*perms = aa_compute_fperms(profile->file.dfa, state, &cond);
 	aa_apply_modes_to_perms(profile, perms);
-	if ((perms->allow & request) != request)
+	if ((perms->allow & request) != request) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	return 0;
 
 fail:
 	*perms = nullperms;
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 }
 
@@ -232,13 +237,18 @@ next:
 		aa_perms_accum(perms, &tmp);
 	}
 
-	if ((perms->allow & request) != request)
+	if ((perms->allow & request) != request) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	return 0;
 
 fail:
 	*perms = nullperms;
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 }
 

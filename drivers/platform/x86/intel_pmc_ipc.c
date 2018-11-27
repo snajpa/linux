@@ -205,8 +205,11 @@ static inline u64 gcr_data_readq(u32 offset)
 
 static inline int is_gcr_valid(u32 offset)
 {
-	if (!ipcdev.has_gcr_regs)
+	if (!ipcdev.has_gcr_regs) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (offset > PLAT_RESOURCE_GCR_SIZE)
 		return -EINVAL;
@@ -909,8 +912,11 @@ int intel_pmc_s0ix_counter_read(u64 *data)
 {
 	u64 deep, shlw;
 
-	if (!ipcdev.has_gcr_regs)
+	if (!ipcdev.has_gcr_regs) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	deep = gcr_data_readq(PMC_GCR_TELEM_DEEP_S0IX_REG);
 	shlw = gcr_data_readq(PMC_GCR_TELEM_SHLW_S0IX_REG);

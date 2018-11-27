@@ -110,22 +110,34 @@ nvkm_dmaobj_ctor(const struct nvkm_dmaobj_func *func, struct nvkm_dma *dma,
 		break;
 	case NV_DMA_V0_TARGET_VRAM:
 		if (!client->super) {
-			if (dmaobj->limit >= fb->ram->size - instmem->reserved)
+			if (dmaobj->limit >= fb->ram->size - instmem->reserved) {
+				printk("-EACCESS @ file %s line %d function %s\n",
+				       __FILE__, __LINE__, __FUNCTION__);
 				return -EACCES;
-			if (device->card_type >= NV_50)
+			}
+			if (device->card_type >= NV_50) {
+				printk("-EACCESS @ file %s line %d function %s\n",
+				       __FILE__, __LINE__, __FUNCTION__);
 				return -EACCES;
+			}
 		}
 		dmaobj->target = NV_MEM_TARGET_VRAM;
 		break;
 	case NV_DMA_V0_TARGET_PCI:
-		if (!client->super)
+		if (!client->super) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		dmaobj->target = NV_MEM_TARGET_PCI;
 		break;
 	case NV_DMA_V0_TARGET_PCI_US:
 	case NV_DMA_V0_TARGET_AGP:
-		if (!client->super)
+		if (!client->super) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		dmaobj->target = NV_MEM_TARGET_PCI_NOSNOOP;
 		break;
 	default:

@@ -925,8 +925,11 @@ static int fm10k_update_vid(struct net_device *netdev, u16 vid, bool set)
 	 * VLAN device. In that case, we need to clear the bit in the
 	 * active_vlans bitmask.
 	 */
-	if (set && hw->mac.vlan_override)
+	if (set && hw->mac.vlan_override) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* update active_vlans bitmask */
 	set_bit(vid, interface->active_vlans);

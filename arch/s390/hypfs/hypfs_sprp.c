@@ -111,8 +111,11 @@ static long hypfs_sprp_ioctl(struct file *file, unsigned int cmd,
 {
 	void __user *argp;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	if (is_compat_task())
 		argp = compat_ptr(arg);
 	else

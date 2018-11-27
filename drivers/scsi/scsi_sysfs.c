@@ -696,8 +696,11 @@ sdev_store_eh_timeout(struct device *dev, struct device_attribute *attr,
 	unsigned int eh_timeout;
 	int err;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	sdev = to_scsi_device(dev);
 	err = kstrtouint(buf, 10, &eh_timeout);

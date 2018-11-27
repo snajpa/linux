@@ -118,8 +118,11 @@ static int rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
 	case RTC_PLL_SET:
 		if (!mach_set_rtc_pll)
 			return -EINVAL;
-		if (!capable(CAP_SYS_TIME))
+		if (!capable(CAP_SYS_TIME)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		if (copy_from_user(&pll, argp, sizeof(pll)))
 			return -EFAULT;
 		return mach_set_rtc_pll(&pll);

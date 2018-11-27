@@ -393,8 +393,11 @@ static int qm_init_pfdr(struct device *dev, u32 pfdr_start, u32 num)
 	} while (!MCR_rslt_idle(rslt));
 	if (MCR_rslt_ok(rslt))
 		return 0;
-	if (MCR_rslt_eaccess(rslt))
+	if (MCR_rslt_eaccess(rslt)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	if (MCR_rslt_inval(rslt))
 		return -EINVAL;
 	dev_crit(dev, "Unexpected result from MCR_INIT_PFDR: %02x\n", rslt);

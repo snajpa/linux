@@ -409,8 +409,11 @@ static int winbond_gpio_direction_in(struct gpio_chip *gc, unsigned int offset)
 	const struct winbond_gpio_info *info;
 	int ret;
 
-	if (!winbond_gpio_get_info(&offset, &info))
+	if (!winbond_gpio_get_info(&offset, &info)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	ret = winbond_sio_enter(*base);
 	if (ret)
@@ -433,8 +436,11 @@ static int winbond_gpio_direction_out(struct gpio_chip *gc,
 	const struct winbond_gpio_info *info;
 	int ret;
 
-	if (!winbond_gpio_get_info(&offset, &info))
+	if (!winbond_gpio_get_info(&offset, &info)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	ret = winbond_sio_enter(*base);
 	if (ret)

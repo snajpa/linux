@@ -282,6 +282,8 @@ int dell_smbios_call_filter(struct device *d,
 		return 0;
 	}
 
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 }
 EXPORT_SYMBOL_GPL(dell_smbios_call_filter);

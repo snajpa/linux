@@ -181,6 +181,8 @@ nfs_namespace_setattr(struct dentry *dentry, struct iattr *attr)
 {
 	if (NFS_FH(d_inode(dentry))->size != 0)
 		return nfs_setattr(dentry, attr);
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 }
 

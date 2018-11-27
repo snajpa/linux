@@ -163,8 +163,11 @@ static int validate_filter_locked(struct usnic_fwd_dev *ufdev,
 	lockdep_assert_held(&ufdev->lock);
 
 	if (filter->type == FILTER_IPV4_5TUPLE) {
-		if (!(filter->u.ipv4.flags & FILTER_FIELD_5TUP_DST_AD))
+		if (!(filter->u.ipv4.flags & FILTER_FIELD_5TUP_DST_AD)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		if (!(filter->u.ipv4.flags & FILTER_FIELD_5TUP_DST_PT))
 			return -EBUSY;
 		else if (ufdev->inaddr == 0)

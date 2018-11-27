@@ -2139,6 +2139,8 @@ int snd_ac97_mixer(struct snd_ac97_bus *bus, struct snd_ac97_template *template,
 				 "AC'97 %d access error (not audio or modem codec)\n",
 				 ac97->num);
 		snd_ac97_free(ac97);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

@@ -41,8 +41,11 @@ static int do_active_device(struct ctl_table *table, int write,
 	struct pardevice *dev;
 	int len = 0;
 
-	if (write)		/* can't happen anyway */
+	if (write)		/* can't happen anyway */ {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (*ppos) {
 		*lenp = 0;
@@ -78,8 +81,11 @@ static int do_autoprobe(struct ctl_table *table, int write,
 	char buffer[256];
 	int len = 0;
 
-	if (write) /* permissions stop this */
+	if (write) /* permissions stop this */ {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (*ppos) {
 		*lenp = 0;
@@ -125,8 +131,11 @@ static int do_hardware_base_addr(struct ctl_table *table, int write,
 		return 0;
 	}
 
-	if (write) /* permissions prevent this anyway */
+	if (write) /* permissions prevent this anyway */ {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	len += sprintf (buffer, "%lu\t%lu\n", port->base, port->base_hi);
 
@@ -153,8 +162,11 @@ static int do_hardware_irq(struct ctl_table *table, int write,
 		return 0;
 	}
 
-	if (write) /* permissions prevent this anyway */
+	if (write) /* permissions prevent this anyway */ {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	len += sprintf (buffer, "%d\n", port->irq);
 
@@ -181,8 +193,11 @@ static int do_hardware_dma(struct ctl_table *table, int write,
 		return 0;
 	}
 
-	if (write) /* permissions prevent this anyway */
+	if (write) /* permissions prevent this anyway */ {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	len += sprintf (buffer, "%d\n", port->dma);
 
@@ -209,8 +224,11 @@ static int do_hardware_modes(struct ctl_table *table, int write,
 		return 0;
 	}
 
-	if (write) /* permissions prevent this anyway */
+	if (write) /* permissions prevent this anyway */ {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	{
 #define printmode(x) {if(port->modes&PARPORT_MODE_##x){len+=sprintf(buffer+len,"%s%s",f?",":"",#x);f++;}}

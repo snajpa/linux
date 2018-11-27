@@ -222,8 +222,11 @@ int ccw_device_start_timeout_key(struct ccw_device *cdev, struct ccw1 *cpa,
 	/* Adjust requested path mask to exclude unusable paths. */
 	if (lpm) {
 		lpm &= sch->lpm;
-		if (lpm == 0)
+		if (lpm == 0) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 	}
 	ret = cio_start_key (sch, cpa, lpm, key);
 	switch (ret) {
@@ -550,8 +553,11 @@ int ccw_device_tm_start_timeout_key(struct ccw_device *cdev, struct tcw *tcw,
 	/* Adjust requested path mask to exclude unusable paths. */
 	if (lpm) {
 		lpm &= sch->lpm;
-		if (lpm == 0)
+		if (lpm == 0) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 	}
 	rc = cio_tm_start_key(sch, tcw, lpm, key);
 	if (rc == 0) {

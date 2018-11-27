@@ -1135,6 +1135,8 @@ __do_block_io_op(struct xen_blkif_ring *ring)
 		rc = blk_rings->common.rsp_prod_pvt;
 		pr_warn("Frontend provided bogus ring requests (%d - %d = %d). Halting ring processing on dev=%04x\n",
 			rp, rc, rp - rc, ring->blkif->vbd.pdevice);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	while (rc != rp) {

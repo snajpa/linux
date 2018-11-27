@@ -922,8 +922,11 @@ static int iwl_mvm_mac_ampdu_action(struct ieee80211_hw *hw,
 	IWL_DEBUG_HT(mvm, "A-MPDU action on addr %pM tid %d: action %d\n",
 		     sta->addr, tid, action);
 
-	if (!(mvm->nvm_data->sku_cap_11n_enable))
+	if (!(mvm->nvm_data->sku_cap_11n_enable)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* return from D0i3 before starting a new Tx aggregation */
 	switch (action) {

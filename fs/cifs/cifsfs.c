@@ -251,8 +251,11 @@ static int cifs_permission(struct inode *inode, int mask)
 	cifs_sb = CIFS_SB(inode->i_sb);
 
 	if (cifs_sb->mnt_cifs_flags & CIFS_MOUNT_NO_PERM) {
-		if ((mask & MAY_EXEC) && !execute_ok(inode))
+		if ((mask & MAY_EXEC) && !execute_ok(inode)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+		               __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		else
 			return 0;
 	} else /* file mode might have been restricted at mount time

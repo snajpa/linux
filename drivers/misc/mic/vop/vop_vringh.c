@@ -1087,6 +1087,8 @@ static int vop_mmap(struct file *f, struct vm_area_struct *vma)
 		goto ret;
 	if (vma->vm_flags & VM_WRITE) {
 		err = -EACCES;
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		goto ret;
 	}
 	while (size_rem) {

@@ -1822,8 +1822,11 @@ int generic_setlease(struct file *filp, long arg, struct file_lock **flp,
 	struct inode *inode = locks_inode(filp);
 	int error;
 
-	if ((!uid_eq(current_fsuid(), inode->i_uid)) && !capable(CAP_LEASE))
+	if ((!uid_eq(current_fsuid(), inode->i_uid)) && !capable(CAP_LEASE)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	if (!S_ISREG(inode->i_mode))
 		return -EINVAL;
 	error = security_file_lock(filp, arg);

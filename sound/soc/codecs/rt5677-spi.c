@@ -126,6 +126,8 @@ int rt5677_spi_read(u32 addr, void *rxbuf, size_t len)
 
 	if ((addr & 1) || (len & 1)) {
 		dev_err(&g_spi->dev, "Bad read align 0x%x(%zu)\n", addr, len);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -180,6 +182,8 @@ int rt5677_spi_write(u32 addr, const void *txbuf, size_t len)
 
 	if (addr & 1) {
 		dev_err(&g_spi->dev, "Bad write align 0x%x(%zu)\n", addr, len);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

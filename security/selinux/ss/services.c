@@ -1596,6 +1596,8 @@ out:
 	kfree(n);
 	if (!enforcing_enabled(state))
 		return 0;
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 }
 

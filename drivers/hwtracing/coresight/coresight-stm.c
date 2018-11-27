@@ -412,8 +412,11 @@ static ssize_t notrace stm_generic_packet(struct stm_data *stm_data,
 	struct stm_drvdata *drvdata = container_of(stm_data,
 						   struct stm_drvdata, stm);
 
-	if (!(drvdata && local_read(&drvdata->mode)))
+	if (!(drvdata && local_read(&drvdata->mode))) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (channel >= drvdata->numsp)
 		return -EINVAL;

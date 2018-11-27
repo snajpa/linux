@@ -998,8 +998,11 @@ static int __uvc_ctrl_get(struct uvc_video_chain *chain,
 {
 	int ret;
 
-	if ((ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR) == 0)
+	if ((ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR) == 0) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (!ctrl->loaded) {
 		ret = uvc_query_ctrl(chain->dev, UVC_GET_CUR, ctrl->entity->id,
@@ -1588,8 +1591,11 @@ int uvc_ctrl_set(struct uvc_fh *handle,
 	ctrl = uvc_find_control(chain, xctrl->id, &mapping);
 	if (ctrl == NULL)
 		return -EINVAL;
-	if (!(ctrl->info.flags & UVC_CTRL_FLAG_SET_CUR))
+	if (!(ctrl->info.flags & UVC_CTRL_FLAG_SET_CUR)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* Clamp out of range values. */
 	switch (mapping->v4l2_type) {

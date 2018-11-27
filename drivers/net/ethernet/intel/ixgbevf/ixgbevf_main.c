@@ -2024,8 +2024,11 @@ static int ixgbevf_vlan_rx_add_vid(struct net_device *netdev,
 	if (err == IXGBE_ERR_MBX)
 		return -EIO;
 
-	if (err == IXGBE_ERR_INVALID_ARGUMENT)
+	if (err == IXGBE_ERR_INVALID_ARGUMENT) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	set_bit(vid, adapter->active_vlans);
 

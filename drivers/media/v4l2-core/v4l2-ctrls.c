@@ -3061,8 +3061,11 @@ static int get_ctrl(struct v4l2_ctrl *ctrl, struct v4l2_ext_control *c)
 	if (!ctrl->is_int && ctrl->type != V4L2_CTRL_TYPE_INTEGER64)
 		return -EINVAL;
 
-	if (ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
+	if (ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	v4l2_ctrl_lock(master);
 	/* g_volatile_ctrl will update the current control values */
@@ -3191,8 +3194,11 @@ static int validate_ctrls(struct v4l2_ext_controls *cs,
 
 		cs->error_idx = i;
 
-		if (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY)
+		if (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		/* This test is also done in try_set_control_cluster() which
 		   is called in atomic context, so that has the final say,
 		   but it makes sense to do an up-front check as well. Once
@@ -3404,8 +3410,11 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
 	if (ctrl == NULL || !ctrl->is_int)
 		return -EINVAL;
 
-	if (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY)
+	if (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	c.value = control->value;
 	ret = set_ctrl_lock(fh, ctrl, &c);

@@ -340,8 +340,11 @@ static ssize_t adsl_state_store(struct device *dev,
 	char str_cmd[8];
 	int len = strlen(buf);
 
-	if (!capable(CAP_NET_ADMIN))
+	if (!capable(CAP_NET_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	ret = sscanf(buf, "%7s", str_cmd);
 	if (ret != 1)
@@ -442,8 +445,11 @@ static ssize_t adsl_config_store(struct device *dev,
 	int ret, pos, num;
 	__le32 data[CMD_PACKET_SIZE / 4];
 
-	if (!capable(CAP_NET_ADMIN))
+	if (!capable(CAP_NET_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (instance == NULL)
 		return -ENODEV;

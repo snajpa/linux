@@ -2960,7 +2960,11 @@ megadev_open (struct inode *inode, struct file *filep)
 	/*
 	 * Only allow superuser to access private ioctl interface
 	 */
-	if( !capable(CAP_SYS_ADMIN) ) return -EACCES;
+	if( !capable(CAP_SYS_ADMIN) ) {printk("-EACCESS @ file %s line %d function %s\n",
+					      __FILE__, __LINE__,
+					      __FUNCTION__);
+		return -EACCES;
+	}
 
 	return 0;
 }

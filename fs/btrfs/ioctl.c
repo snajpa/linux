@@ -2579,6 +2579,8 @@ static int btrfs_ioctl_ino_lookup_user(struct file *file, void __user *argp)
 		 * called
 		 */
 		kfree(args);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

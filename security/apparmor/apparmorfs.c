@@ -1296,8 +1296,11 @@ static int rawdata_release(struct inode *inode, struct file *file)
 
 static int rawdata_open(struct inode *inode, struct file *file)
 {
-	if (!policy_view_capable(NULL))
+	if (!policy_view_capable(NULL)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	file->private_data = __aa_get_loaddata(inode->i_private);
 	if (!file->private_data)
 		/* lost race: this entry is being reaped */
@@ -2174,8 +2177,11 @@ static const struct seq_operations aa_sfs_profiles_op = {
 
 static int profiles_open(struct inode *inode, struct file *file)
 {
-	if (!policy_view_capable(NULL))
+	if (!policy_view_capable(NULL)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	return seq_open(file, &aa_sfs_profiles_op);
 }

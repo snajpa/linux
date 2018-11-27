@@ -397,8 +397,11 @@ int clkdm_register_clkdms(struct clockdomain **cs)
 {
 	struct clockdomain **c = NULL;
 
-	if (!arch_clkdm)
+	if (!arch_clkdm) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (!cs)
 		return -EINVAL;
@@ -437,8 +440,11 @@ int clkdm_register_autodeps(struct clkdm_autodep *ia)
 {
 	struct clkdm_autodep *a = NULL;
 
-	if (list_empty(&clkdm_list))
+	if (list_empty(&clkdm_list)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (!ia)
 		return -EINVAL;
@@ -482,8 +488,11 @@ int clkdm_complete_init(void)
 	struct clockdomain *clkdm;
 	static struct notifier_block nb;
 
-	if (list_empty(&clkdm_list))
+	if (list_empty(&clkdm_list)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	list_for_each_entry(clkdm, &clkdm_list, node) {
 		clkdm_deny_idle(clkdm);

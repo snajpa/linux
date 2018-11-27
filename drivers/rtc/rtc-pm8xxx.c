@@ -89,8 +89,11 @@ static int pm8xxx_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	struct pm8xxx_rtc *rtc_dd = dev_get_drvdata(dev);
 	const struct pm8xxx_rtc_regs *regs = rtc_dd->regs;
 
-	if (!rtc_dd->allow_set_time)
+	if (!rtc_dd->allow_set_time) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	rtc_tm_to_time(tm, &secs);
 

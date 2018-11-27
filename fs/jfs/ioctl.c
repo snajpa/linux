@@ -78,6 +78,8 @@ long jfs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 		if (!inode_owner_or_capable(inode)) {
 			err = -EACCES;
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			goto setflags_out;
 		}
 		if (get_user(flags, (int __user *) arg)) {

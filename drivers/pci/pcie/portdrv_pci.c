@@ -228,8 +228,11 @@ static const struct dmi_system_id pcie_portdrv_dmi_table[] __initconst = {
 
 static int __init pcie_portdrv_init(void)
 {
-	if (pcie_ports_disabled)
+	if (pcie_ports_disabled) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	dmi_check_system(pcie_portdrv_dmi_table);
 

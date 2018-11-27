@@ -525,8 +525,11 @@ static int hdlcdrv_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 		break;
 
 	case HDLCDRVCTL_SETCHANNELPAR:
-		if (!capable(CAP_NET_ADMIN))
+		if (!capable(CAP_NET_ADMIN)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		s->ch_params.tx_delay = bi.data.cp.tx_delay;
 		s->ch_params.tx_tail = bi.data.cp.tx_tail;
 		s->ch_params.slottime = bi.data.cp.slottime;
@@ -546,8 +549,11 @@ static int hdlcdrv_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 		break;
 
 	case HDLCDRVCTL_SETMODEMPAR:
-		if ((!capable(CAP_SYS_RAWIO)) || netif_running(dev))
+		if ((!capable(CAP_SYS_RAWIO)) || netif_running(dev)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		dev->base_addr = bi.data.mp.iobase;
 		dev->irq = bi.data.mp.irq;
 		dev->dma = bi.data.mp.dma;

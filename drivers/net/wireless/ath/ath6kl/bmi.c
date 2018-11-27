@@ -49,6 +49,8 @@ int ath6kl_bmi_get_target_info(struct ath6kl *ar,
 
 	if (ar->bmi.done_sent) {
 		ath6kl_err("bmi done sent already, cmd %d disallowed\n", cid);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -121,6 +123,8 @@ int ath6kl_bmi_read(struct ath6kl *ar, u32 addr, u8 *buf, u32 len)
 
 	if (ar->bmi.done_sent) {
 		ath6kl_err("bmi done sent already, cmd %d disallowed\n", cid);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -179,6 +183,8 @@ int ath6kl_bmi_write(struct ath6kl *ar, u32 addr, u8 *buf, u32 len)
 
 	if (ar->bmi.done_sent) {
 		ath6kl_err("bmi done sent already, cmd %d disallowed\n", cid);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -243,6 +249,8 @@ int ath6kl_bmi_execute(struct ath6kl *ar, u32 addr, u32 *param)
 
 	if (ar->bmi.done_sent) {
 		ath6kl_err("bmi done sent already, cmd %d disallowed\n", cid);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -290,6 +298,8 @@ int ath6kl_bmi_set_app_start(struct ath6kl *ar, u32 addr)
 
 	if (ar->bmi.done_sent) {
 		ath6kl_err("bmi done sent already, cmd %d disallowed\n", cid);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -326,6 +336,8 @@ int ath6kl_bmi_reg_read(struct ath6kl *ar, u32 addr, u32 *param)
 
 	if (ar->bmi.done_sent) {
 		ath6kl_err("bmi done sent already, cmd %d disallowed\n", cid);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -369,6 +381,8 @@ int ath6kl_bmi_reg_write(struct ath6kl *ar, u32 addr, u32 param)
 
 	if (ar->bmi.done_sent) {
 		ath6kl_err("bmi done sent already, cmd %d disallowed\n", cid);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -411,6 +425,8 @@ int ath6kl_bmi_lz_data(struct ath6kl *ar, u8 *buf, u32 len)
 
 	if (ar->bmi.done_sent) {
 		ath6kl_err("bmi done sent already, cmd %d disallowed\n", cid);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -460,6 +476,8 @@ int ath6kl_bmi_lz_stream_start(struct ath6kl *ar, u32 addr)
 
 	if (ar->bmi.done_sent) {
 		ath6kl_err("bmi done sent already, cmd %d disallowed\n", cid);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

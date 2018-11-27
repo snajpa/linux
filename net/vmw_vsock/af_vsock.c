@@ -533,6 +533,8 @@ static int __vsock_bind_stream(struct vsock_sock *vsk,
 		 */
 		if (addr->svm_port <= LAST_RESERVED_PORT &&
 		    !capable(CAP_NET_BIND_SERVICE)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 

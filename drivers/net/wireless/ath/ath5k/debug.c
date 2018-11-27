@@ -914,8 +914,11 @@ static int open_file_eeprom(struct inode *inode, struct file *file)
 	/* Get eeprom size */
 
 	res = ath5k_hw_nvram_read(ah, AR5K_EEPROM_SIZE_UPPER, &val);
-	if (!res)
+	if (!res) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (val == 0) {
 		eesize = AR5K_EEPROM_INFO_MAX + AR5K_EEPROM_INFO_BASE;

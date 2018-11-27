@@ -3931,7 +3931,9 @@ show_session_param_##param(struct device *dev,				\
 	struct iscsi_transport *t = session->transport;			\
 									\
 	if (perm && !capable(CAP_SYS_ADMIN))				\
-		return -EACCES;						\
+		{printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__, __FUNCTION__); \
+		return -EACCES; \
+	}						\
 	return t->get_session_param(session, param, buf);		\
 }
 

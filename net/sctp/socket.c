@@ -418,8 +418,11 @@ static int sctp_do_bind(struct sock *sk, union sctp_addr *addr, int len)
 	}
 
 	if (snum && snum < inet_prot_sock(net) &&
-	    !ns_capable(net->user_ns, CAP_NET_BIND_SERVICE))
+	    !ns_capable(net->user_ns, CAP_NET_BIND_SERVICE)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* See if the address matches any of the addresses we may have
 	 * already bound before checking against other endpoints.
@@ -1200,6 +1203,9 @@ static int __sctp_connect(struct sock *sk,
 				    !ns_capable(net->user_ns,
 				    CAP_NET_BIND_SERVICE)) {
 					err = -EACCES;
+					printk("-EACCESS @ file %s line %d function %s\n",
+					       __FILE__, __LINE__,
+					       __FUNCTION__);
 					goto out_free;
 				}
 			}
@@ -1717,8 +1723,11 @@ static int sctp_sendmsg_new_asoc(struct sock *sk, __u16 sflags,
 			return -EAGAIN;
 	} else {
 		if (ep->base.bind_addr.port < inet_prot_sock(net) &&
-		    !ns_capable(net->user_ns, CAP_NET_BIND_SERVICE))
+		    !ns_capable(net->user_ns, CAP_NET_BIND_SERVICE)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 	}
 
 	scope = sctp_scope(daddr);
@@ -3637,8 +3646,11 @@ static int sctp_setsockopt_auth_chunk(struct sock *sk,
 	struct sctp_endpoint *ep = sctp_sk(sk)->ep;
 	struct sctp_authchunk val;
 
-	if (!ep->auth_enable)
+	if (!ep->auth_enable) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (optlen != sizeof(struct sctp_authchunk))
 		return -EINVAL;
@@ -3672,8 +3684,11 @@ static int sctp_setsockopt_hmac_ident(struct sock *sk,
 	u32 idents;
 	int err;
 
-	if (!ep->auth_enable)
+	if (!ep->auth_enable) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (optlen < sizeof(struct sctp_hmacalgo))
 		return -EINVAL;
@@ -3712,8 +3727,11 @@ static int sctp_setsockopt_auth_key(struct sock *sk,
 	struct sctp_association *asoc;
 	int ret;
 
-	if (!ep->auth_enable)
+	if (!ep->auth_enable) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (optlen <= sizeof(struct sctp_authkey))
 		return -EINVAL;
@@ -3758,8 +3776,11 @@ static int sctp_setsockopt_active_key(struct sock *sk,
 	struct sctp_authkeyid val;
 	struct sctp_association *asoc;
 
-	if (!ep->auth_enable)
+	if (!ep->auth_enable) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (optlen != sizeof(struct sctp_authkeyid))
 		return -EINVAL;
@@ -3786,8 +3807,11 @@ static int sctp_setsockopt_del_key(struct sock *sk,
 	struct sctp_authkeyid val;
 	struct sctp_association *asoc;
 
-	if (!ep->auth_enable)
+	if (!ep->auth_enable) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (optlen != sizeof(struct sctp_authkeyid))
 		return -EINVAL;
@@ -3814,8 +3838,11 @@ static int sctp_setsockopt_deactivate_key(struct sock *sk, char __user *optval,
 	struct sctp_authkeyid val;
 	struct sctp_association *asoc;
 
-	if (!ep->auth_enable)
+	if (!ep->auth_enable) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (optlen != sizeof(struct sctp_authkeyid))
 		return -EINVAL;
@@ -6592,8 +6619,11 @@ static int sctp_getsockopt_hmac_ident(struct sock *sk, int len,
 	u32 num_idents;
 	int i;
 
-	if (!ep->auth_enable)
+	if (!ep->auth_enable) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	hmacs = ep->auth_hmacs_list;
 	data_len = ntohs(hmacs->param_hdr.length) -
@@ -6625,8 +6655,11 @@ static int sctp_getsockopt_active_key(struct sock *sk, int len,
 	struct sctp_authkeyid val;
 	struct sctp_association *asoc;
 
-	if (!ep->auth_enable)
+	if (!ep->auth_enable) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (len < sizeof(struct sctp_authkeyid))
 		return -EINVAL;
@@ -6663,8 +6696,11 @@ static int sctp_getsockopt_peer_auth_chunks(struct sock *sk, int len,
 	u32    num_chunks = 0;
 	char __user *to;
 
-	if (!ep->auth_enable)
+	if (!ep->auth_enable) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (len < sizeof(struct sctp_authchunks))
 		return -EINVAL;
@@ -6708,8 +6744,11 @@ static int sctp_getsockopt_local_auth_chunks(struct sock *sk, int len,
 	u32    num_chunks = 0;
 	char __user *to;
 
-	if (!ep->auth_enable)
+	if (!ep->auth_enable) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (len < sizeof(struct sctp_authchunks))
 		return -EINVAL;

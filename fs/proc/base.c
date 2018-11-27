@@ -418,8 +418,11 @@ static int proc_pid_stack(struct seq_file *m, struct pid_namespace *ns,
 	 * surface.
 	 * Therefore, this interface is restricted to root.
 	 */
-	if (!file_ns_capable(m->file, &init_user_ns, CAP_SYS_ADMIN))
+	if (!file_ns_capable(m->file, &init_user_ns, CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	entries = kmalloc_array(MAX_STACK_TRACE_DEPTH, sizeof(*entries),
 				GFP_KERNEL);
@@ -1031,6 +1034,8 @@ static int __set_oom_adj(struct file *file, int oom_adj, bool legacy)
 		if (oom_adj < task->signal->oom_score_adj &&
 				!capable(CAP_SYS_RESOURCE)) {
 			err = -EACCES;
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			goto err_unlock;
 		}
 		/*
@@ -1044,6 +1049,8 @@ static int __set_oom_adj(struct file *file, int oom_adj, bool legacy)
 		if ((short)oom_adj < task->signal->oom_score_adj_min &&
 				!capable(CAP_SYS_RESOURCE)) {
 			err = -EACCES;
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			goto err_unlock;
 		}
 	}
@@ -2544,6 +2551,8 @@ static ssize_t proc_pid_attr_write(struct file * file, const char __user * buf,
 	/* A task may only write its own attributes. */
 	if (current != task) {
 		rcu_read_unlock();
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	rcu_read_unlock();

@@ -190,7 +190,12 @@ static long efi_rtc_ioctl(struct file *file, unsigned int cmd,
 
 		case RTC_SET_TIME:
 
-			if (!capable(CAP_SYS_TIME)) return -EACCES;
+			if (!capable(CAP_SYS_TIME)) {printk("-EACCESS @ file %s line %d function %s\n",
+							    __FILE__,
+							    __LINE__,
+							    __FUNCTION__);
+				return -EACCES;
+			}
 
 			if (copy_from_user(&wtime, (struct rtc_time __user *)arg,
 					   sizeof(struct rtc_time)) )
@@ -208,7 +213,12 @@ static long efi_rtc_ioctl(struct file *file, unsigned int cmd,
 
 		case RTC_WKALM_SET:
 
-			if (!capable(CAP_SYS_TIME)) return -EACCES;
+			if (!capable(CAP_SYS_TIME)) {printk("-EACCESS @ file %s line %d function %s\n",
+							    __FILE__,
+							    __LINE__,
+							    __FUNCTION__);
+				return -EACCES;
+			}
 
 			ewp = (struct rtc_wkalrm __user *)arg;
 

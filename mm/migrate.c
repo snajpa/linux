@@ -1524,6 +1524,8 @@ static int add_page_for_migration(struct mm_struct *mm, unsigned long addr,
 		goto out_putpage;
 
 	err = -EACCES;
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	if (page_mapcount(page) > 1 && !migrate_all)
 		goto out_putpage;
 
@@ -1594,6 +1596,8 @@ static int do_pages_move(struct mm_struct *mm, nodemask_t task_nodes,
 			goto out_flush;
 
 		err = -EACCES;
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		if (!node_isset(node, task_nodes))
 			goto out_flush;
 

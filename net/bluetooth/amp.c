@@ -180,14 +180,19 @@ int phylink_gen_key(struct hci_conn *conn, u8 *data, u8 *len, u8 *type)
 	u8 gamp_key[HCI_AMP_LINK_KEY_SIZE];
 	int err;
 
-	if (!hci_conn_check_link_mode(conn))
+	if (!hci_conn_check_link_mode(conn)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	BT_DBG("conn %p key_type %d", conn, conn->key_type);
 
 	/* Legacy key */
 	if (conn->key_type < 3) {
 		bt_dev_err(hdev, "legacy key type %d", conn->key_type);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -197,6 +202,8 @@ int phylink_gen_key(struct hci_conn *conn, u8 *data, u8 *len, u8 *type)
 	key = hci_find_link_key(hdev, &conn->dst);
 	if (!key) {
 		BT_DBG("No Link key for conn %p dst %pMR", conn, &conn->dst);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

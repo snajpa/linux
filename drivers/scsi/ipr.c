@@ -3603,8 +3603,11 @@ static ssize_t ipr_store_diagnostics(struct device *dev,
 	unsigned long lock_flags = 0;
 	int rc = count;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	spin_lock_irqsave(ioa_cfg->host->host_lock, lock_flags);
 	while (ioa_cfg->in_reset_reload) {
@@ -3688,8 +3691,11 @@ static ssize_t ipr_store_adapter_state(struct device *dev,
 	unsigned long lock_flags;
 	int result = count, i;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	spin_lock_irqsave(ioa_cfg->host->host_lock, lock_flags);
 	if (ioa_cfg->hrrq[IPR_INIT_HRRQ].ioa_is_dead &&
@@ -3739,8 +3745,11 @@ static ssize_t ipr_store_reset_adapter(struct device *dev,
 	unsigned long lock_flags;
 	int result = count;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	spin_lock_irqsave(ioa_cfg->host->host_lock, lock_flags);
 	if (!ioa_cfg->in_reset_reload)
@@ -4093,8 +4102,11 @@ static ssize_t ipr_store_update_fw(struct device *dev,
 	char *endline;
 	int result, dnld_size;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	snprintf(fname, sizeof(fname), "%s", buf);
 
@@ -4273,8 +4285,11 @@ static ssize_t ipr_read_dump(struct file *filp, struct kobject *kobj,
 	int len, sdt_end;
 	size_t rc = count;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	spin_lock_irqsave(ioa_cfg->host->host_lock, lock_flags);
 	dump = ioa_cfg->dump;
@@ -4458,8 +4473,11 @@ static ssize_t ipr_write_dump(struct file *filp, struct kobject *kobj,
 	struct ipr_ioa_cfg *ioa_cfg = (struct ipr_ioa_cfg *)shost->hostdata;
 	int rc;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (buf[0] == '1')
 		rc = ipr_alloc_dump(ioa_cfg);

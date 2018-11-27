@@ -855,6 +855,8 @@ static struct file *do_open_execat(int fd, struct filename *name, int flags)
 		goto out;
 
 	err = -EACCES;
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	if (!S_ISREG(file_inode(file)->i_mode))
 		goto exit;
 

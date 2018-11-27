@@ -5994,8 +5994,11 @@ il4965_mac_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 	D_HT("A-MPDU action on addr %pM tid %d\n", sta->addr, tid);
 
-	if (!(il->cfg->sku & IL_SKU_N))
+	if (!(il->cfg->sku & IL_SKU_N)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	mutex_lock(&il->mutex);
 

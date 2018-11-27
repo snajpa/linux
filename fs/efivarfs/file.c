@@ -134,8 +134,11 @@ efivarfs_ioc_setxflags(struct file *file, void __user *arg)
 	unsigned int i_flags = 0;
 	int error;
 
-	if (!inode_owner_or_capable(inode))
+	if (!inode_owner_or_capable(inode)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (copy_from_user(&flags, arg, sizeof(flags)))
 		return -EFAULT;

@@ -40,8 +40,11 @@ static int check_effect_access(struct ff_device *ff, int effect_id,
 	    !ff->effect_owners[effect_id])
 		return -EINVAL;
 
-	if (file && ff->effect_owners[effect_id] != file)
+	if (file && ff->effect_owners[effect_id] != file) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	return 0;
 }

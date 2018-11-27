@@ -909,6 +909,8 @@ int efi_status_to_err(efi_status_t status)
 		break;
 	case EFI_SECURITY_VIOLATION:
 		err = -EACCES;
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		break;
 	case EFI_NOT_FOUND:
 		err = -ENOENT;

@@ -46,8 +46,11 @@ static int seq_open_net(struct inode *inode, struct file *file)
 
 	WARN_ON_ONCE(state_size < sizeof(*p));
 
-	if (file->f_mode & FMODE_WRITE && !PDE(inode)->write)
+	if (file->f_mode & FMODE_WRITE && !PDE(inode)->write) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	net = get_proc_net(inode);
 	if (!net)

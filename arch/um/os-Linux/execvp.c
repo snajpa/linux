@@ -120,10 +120,13 @@ int execvp_noalloc(char *buf, const char *file, char *const argv[])
 		} while (*p++ != '\0');
 
 		/* We tried every element and none of them worked.  */
-		if (got_eacces)
+		if (got_eacces) {
 			/* At least one failure was due to permissions, so report that
 			   error.  */
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 	}
 
 	/* Return the error from the last attempt (probably ENOENT).  */

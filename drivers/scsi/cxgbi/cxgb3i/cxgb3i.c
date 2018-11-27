@@ -1231,6 +1231,8 @@ static int cxgb3i_ddp_init(struct cxgbi_device *cdev)
 	if (uinfo.llimit >= uinfo.ulimit) {
 		pr_warn("T3 %s, iscsi NOT enabled %u ~ %u!\n",
 			ndev->name, uinfo.llimit, uinfo.ulimit);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

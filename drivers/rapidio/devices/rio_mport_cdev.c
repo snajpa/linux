@@ -1373,8 +1373,11 @@ static int rio_mport_add_event(struct mport_cdev_priv *priv,
 {
 	int overflow;
 
-	if (!(priv->event_mask & event->header))
+	if (!(priv->event_mask & event->header)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	spin_lock(&priv->fifo_lock);
 	overflow = kfifo_avail(&priv->event_fifo) < sizeof(*event)

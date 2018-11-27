@@ -967,6 +967,8 @@ static int check_reg_arg(struct bpf_verifier_env *env, u32 regno,
 		/* check whether register used as source operand can be read */
 		if (regs[regno].type == NOT_INIT) {
 			verbose(env, "R%d !read_ok\n", regno);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		return mark_reg_read(env, vstate, vstate->parent, regno);
@@ -974,6 +976,8 @@ static int check_reg_arg(struct bpf_verifier_env *env, u32 regno,
 		/* check whether register used as dest operand can be written to */
 		if (regno == BPF_REG_FP) {
 			verbose(env, "frame pointer is read only\n");
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		regs[regno].live |= REG_LIVE_WRITTEN;
@@ -1028,6 +1032,8 @@ static int check_stack_write(struct bpf_verifier_env *env,
 	    state->stack[spi].slot_type[0] == STACK_SPILL &&
 	    size != BPF_REG_SIZE) {
 		verbose(env, "attempt to corrupt spilled pointer on stack\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -1038,6 +1044,8 @@ static int check_stack_write(struct bpf_verifier_env *env,
 		/* register containing pointer is being spilled into stack */
 		if (size != BPF_REG_SIZE) {
 			verbose(env, "invalid size of register spill\n");
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 
@@ -1173,6 +1181,8 @@ static int check_stack_read(struct bpf_verifier_env *env,
 	if (reg_state->allocated_stack <= slot) {
 		verbose(env, "invalid read from stack off %d+0 size %d\n",
 			off, size);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	stype = reg_state->stack[spi].slot_type;
@@ -1180,11 +1190,15 @@ static int check_stack_read(struct bpf_verifier_env *env,
 	if (stype[0] == STACK_SPILL) {
 		if (size != BPF_REG_SIZE) {
 			verbose(env, "invalid size of register spill\n");
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		for (i = 1; i < BPF_REG_SIZE; i++) {
 			if (stype[(slot - i) % BPF_REG_SIZE] != STACK_SPILL) {
 				verbose(env, "corrupted spill memory\n");
+				printk("-EACCESS @ file %s line %d function %s\n",
+				       __FILE__, __LINE__, __FUNCTION__);
 				return -EACCES;
 			}
 		}
@@ -1213,6 +1227,8 @@ static int check_stack_read(struct bpf_verifier_env *env,
 			}
 			verbose(env, "invalid read from stack off %d+%d size %d\n",
 				off, i, size);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		mark_stack_slot_read(env, vstate, vstate->parent, spi,
@@ -1244,6 +1260,8 @@ static int __check_map_access(struct bpf_verifier_env *env, u32 regno, int off,
 	    off + size > map->value_size) {
 		verbose(env, "invalid access to map value, value_size=%d off=%d size=%d\n",
 			map->value_size, off, size);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	return 0;
@@ -1273,6 +1291,8 @@ static int check_map_access(struct bpf_verifier_env *env, u32 regno,
 	if (reg->smin_value < 0) {
 		verbose(env, "R%d min value is negative, either use unsigned index or do a if (index >=0) check.\n",
 			regno);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	err = __check_map_access(env, regno, reg->smin_value + off, size,
@@ -1290,6 +1310,8 @@ static int check_map_access(struct bpf_verifier_env *env, u32 regno,
 	if (reg->umax_value >= BPF_MAX_VAR_OFF) {
 		verbose(env, "R%d unbounded memory access, make sure to bounds check any array access into a map\n",
 			regno);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	err = __check_map_access(env, regno, reg->umax_value + off, size,
@@ -1341,6 +1363,8 @@ static int __check_packet_access(struct bpf_verifier_env *env, u32 regno,
 	    (u64)off + size > reg->range) {
 		verbose(env, "invalid access to packet, off=%d size=%d, R%d(id=%d,off=%d,r=%d)\n",
 			off, size, regno, reg->id, reg->off, reg->range);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	return 0;
@@ -1364,6 +1388,8 @@ static int check_packet_access(struct bpf_verifier_env *env, u32 regno, int off,
 	if (reg->smin_value < 0) {
 		verbose(env, "R%d min value is negative, either use unsigned index or do a if (index >=0) check.\n",
 			regno);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	err = __check_packet_access(env, regno, off, size, zero_size_allowed);
@@ -1401,6 +1427,8 @@ static int check_ctx_access(struct bpf_verifier_env *env, int insn_idx, int off,
 	}
 
 	verbose(env, "invalid bpf_context access off=%d size=%d\n", off, size);
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 }
 
@@ -1461,6 +1489,8 @@ static int check_pkt_ptr_alignment(struct bpf_verifier_env *env,
 		verbose(env,
 			"misaligned packet access off %d+%s+%d+%d size %d\n",
 			ip_align, tn_buf, reg->off, off, size);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -1485,6 +1515,8 @@ static int check_generic_ptr_alignment(struct bpf_verifier_env *env,
 		tnum_strn(tn_buf, sizeof(tn_buf), reg->var_off);
 		verbose(env, "misaligned %saccess off %s+%d+%d size %d\n",
 			pointer_desc, tn_buf, reg->off, off, size);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -1562,6 +1594,8 @@ process_func:
 	if (depth > MAX_BPF_STACK) {
 		verbose(env, "combined stack size of %d calls is %d. Too large\n",
 			frame + 1, depth);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 continue_func:
@@ -1628,6 +1662,8 @@ static int check_ctx_reg(struct bpf_verifier_env *env,
 	if (reg->off) {
 		verbose(env, "dereference of modified ctx ptr R%d off=%d disallowed\n",
 			regno, reg->off);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -1636,6 +1672,8 @@ static int check_ctx_reg(struct bpf_verifier_env *env,
 
 		tnum_strn(tn_buf, sizeof(tn_buf), reg->var_off);
 		verbose(env, "variable ctx access var_off=%s disallowed\n", tn_buf);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -1696,6 +1734,8 @@ static int check_mem_access(struct bpf_verifier_env *env, int insn_idx, u32 regn
 		if (t == BPF_WRITE && value_regno >= 0 &&
 		    is_pointer_value(env, value_regno)) {
 			verbose(env, "R%d leaks addr into map\n", value_regno);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 
@@ -1709,6 +1749,8 @@ static int check_mem_access(struct bpf_verifier_env *env, int insn_idx, u32 regn
 		if (t == BPF_WRITE && value_regno >= 0 &&
 		    is_pointer_value(env, value_regno)) {
 			verbose(env, "R%d leaks addr into ctx\n", value_regno);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 
@@ -1744,12 +1786,16 @@ static int check_mem_access(struct bpf_verifier_env *env, int insn_idx, u32 regn
 			tnum_strn(tn_buf, sizeof(tn_buf), reg->var_off);
 			verbose(env, "variable stack access var_off=%s off=%d size=%d",
 				tn_buf, off, size);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		off += reg->var_off.value;
 		if (off >= 0 || off < -MAX_BPF_STACK) {
 			verbose(env, "invalid stack off=%d size=%d\n", off,
 				size);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 
@@ -1767,12 +1813,16 @@ static int check_mem_access(struct bpf_verifier_env *env, int insn_idx, u32 regn
 	} else if (reg_is_pkt_pointer(reg)) {
 		if (t == BPF_WRITE && !may_access_direct_pkt_data(env, NULL, t)) {
 			verbose(env, "cannot write into packet\n");
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		if (t == BPF_WRITE && value_regno >= 0 &&
 		    is_pointer_value(env, value_regno)) {
 			verbose(env, "R%d leaks addr into packet\n",
 				value_regno);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		err = check_packet_access(env, regno, off, size, false);
@@ -1781,6 +1831,8 @@ static int check_mem_access(struct bpf_verifier_env *env, int insn_idx, u32 regn
 	} else {
 		verbose(env, "R%d invalid mem access '%s'\n", regno,
 			reg_type_str[reg->type]);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -1814,6 +1866,8 @@ static int check_xadd(struct bpf_verifier_env *env, int insn_idx, struct bpf_ins
 
 	if (is_pointer_value(env, insn->src_reg)) {
 		verbose(env, "R%d leaks addr into mem\n", insn->src_reg);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -1822,6 +1876,8 @@ static int check_xadd(struct bpf_verifier_env *env, int insn_idx, struct bpf_ins
 		verbose(env, "BPF_XADD stores into R%d %s is not allowed\n",
 			insn->dst_reg, is_ctx_reg(env, insn->dst_reg) ?
 			"context" : "packet");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -1859,6 +1915,8 @@ static int check_stack_boundary(struct bpf_verifier_env *env, int regno,
 		verbose(env, "R%d type=%s expected=%s\n", regno,
 			reg_type_str[reg->type],
 			reg_type_str[PTR_TO_STACK]);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -1869,6 +1927,8 @@ static int check_stack_boundary(struct bpf_verifier_env *env, int regno,
 		tnum_strn(tn_buf, sizeof(tn_buf), reg->var_off);
 		verbose(env, "invalid variable stack read R%d var_off=%s\n",
 			regno, tn_buf);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	off = reg->off + reg->var_off.value;
@@ -1876,6 +1936,8 @@ static int check_stack_boundary(struct bpf_verifier_env *env, int regno,
 	    access_size < 0 || (access_size == 0 && !zero_size_allowed)) {
 		verbose(env, "invalid stack type R%d off=%d access_size=%d\n",
 			regno, off, access_size);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -1903,6 +1965,8 @@ static int check_stack_boundary(struct bpf_verifier_env *env, int regno,
 err:
 		verbose(env, "invalid indirect read from stack off %d+%d size %d\n",
 			off, i, access_size);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 mark:
 		/* reading any byte out of 8-byte 'spill_slot' will cause
@@ -1966,6 +2030,8 @@ static int check_func_arg(struct bpf_verifier_env *env, u32 regno,
 		if (is_pointer_value(env, regno)) {
 			verbose(env, "R%d leaks addr into helper function\n",
 				regno);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		return 0;
@@ -1974,6 +2040,8 @@ static int check_func_arg(struct bpf_verifier_env *env, u32 regno,
 	if (type_is_pkt_pointer(type) &&
 	    !may_access_direct_pkt_data(env, meta, BPF_READ)) {
 		verbose(env, "helper access to the packet is not allowed\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -2033,6 +2101,8 @@ static int check_func_arg(struct bpf_verifier_env *env, u32 regno,
 			 * that kernel subsystem misconfigured verifier
 			 */
 			verbose(env, "invalid map_ptr to access map->key\n");
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		err = check_helper_mem_access(env, regno,
@@ -2045,6 +2115,8 @@ static int check_func_arg(struct bpf_verifier_env *env, u32 regno,
 		if (!meta->map_ptr) {
 			/* kernel subsystem misconfigured verifier */
 			verbose(env, "invalid map_ptr to access map->value\n");
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		err = check_helper_mem_access(env, regno,
@@ -2073,6 +2145,8 @@ static int check_func_arg(struct bpf_verifier_env *env, u32 regno,
 		if (reg->smin_value < 0) {
 			verbose(env, "R%d min value is negative, either use unsigned or 'var &= const'\n",
 				regno);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 
@@ -2087,6 +2161,8 @@ static int check_func_arg(struct bpf_verifier_env *env, u32 regno,
 		if (reg->umax_value >= BPF_MAX_VAR_SIZ) {
 			verbose(env, "R%d unbounded memory access, use 'var &= const' or 'if (var < const)'\n",
 				regno);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		err = check_helper_mem_access(env, regno - 1,
@@ -2098,6 +2174,8 @@ static int check_func_arg(struct bpf_verifier_env *env, u32 regno,
 err_type:
 	verbose(env, "R%d type=%s expected=%s\n", regno,
 		reg_type_str[type], reg_type_str[expected_type]);
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 }
 
@@ -2719,22 +2797,30 @@ static int adjust_ptr_min_max_vals(struct bpf_verifier_env *env,
 		verbose(env,
 			"R%d 32-bit pointer arithmetic prohibited\n",
 			dst);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
 	if (ptr_reg->type == PTR_TO_MAP_VALUE_OR_NULL) {
 		verbose(env, "R%d pointer arithmetic on PTR_TO_MAP_VALUE_OR_NULL prohibited, null-check it first\n",
 			dst);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	if (ptr_reg->type == CONST_PTR_TO_MAP) {
 		verbose(env, "R%d pointer arithmetic on CONST_PTR_TO_MAP prohibited\n",
 			dst);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	if (ptr_reg->type == PTR_TO_PACKET_END) {
 		verbose(env, "R%d pointer arithmetic on PTR_TO_PACKET_END prohibited\n",
 			dst);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -2803,6 +2889,8 @@ static int adjust_ptr_min_max_vals(struct bpf_verifier_env *env,
 			/* scalar -= pointer.  Creates an unknown scalar */
 			verbose(env, "R%d tried to subtract pointer from scalar\n",
 				dst);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		/* We don't allow subtraction from FP, because (according to
@@ -2812,6 +2900,8 @@ static int adjust_ptr_min_max_vals(struct bpf_verifier_env *env,
 		if (ptr_reg->type == PTR_TO_STACK) {
 			verbose(env, "R%d subtraction from stack pointer prohibited\n",
 				dst);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		if (known && (ptr_reg->off - smin_val ==
@@ -2863,11 +2953,15 @@ static int adjust_ptr_min_max_vals(struct bpf_verifier_env *env,
 		/* bitwise ops on pointers are troublesome, prohibit. */
 		verbose(env, "R%d bitwise operator %s on pointer prohibited\n",
 			dst, bpf_alu_string[opcode >> 4]);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	default:
 		/* other operators (e.g. MUL,LSH) produce non-pointer results */
 		verbose(env, "R%d pointer arithmetic with %s operator prohibited\n",
 			dst, bpf_alu_string[opcode >> 4]);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -3178,6 +3272,8 @@ static int adjust_reg_min_max_vals(struct bpf_verifier_env *env,
 				verbose(env, "R%d pointer %s pointer prohibited\n",
 					insn->dst_reg,
 					bpf_alu_string[opcode >> 4]);
+				printk("-EACCESS @ file %s line %d function %s\n",
+				       __FILE__, __LINE__, __FUNCTION__);
 				return -EACCES;
 			} else {
 				/* scalar += pointer
@@ -3250,6 +3346,8 @@ static int check_alu_op(struct bpf_verifier_env *env, struct bpf_insn *insn)
 		if (is_pointer_value(env, insn->dst_reg)) {
 			verbose(env, "R%d pointer arithmetic prohibited\n",
 				insn->dst_reg);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 
@@ -3295,6 +3393,9 @@ static int check_alu_op(struct bpf_verifier_env *env, struct bpf_insn *insn)
 					verbose(env,
 						"R%d partial copy of pointer\n",
 						insn->src_reg);
+					printk("-EACCESS @ file %s line %d function %s\n",
+					       __FILE__, __LINE__,
+					       __FUNCTION__);
 					return -EACCES;
 				}
 				mark_reg_unknown(env, regs, insn->dst_reg);
@@ -3842,6 +3943,8 @@ static int check_cond_jmp_op(struct bpf_verifier_env *env,
 		if (is_pointer_value(env, insn->src_reg)) {
 			verbose(env, "R%d pointer comparison prohibited\n",
 				insn->src_reg);
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 	} else {
@@ -3928,6 +4031,8 @@ static int check_cond_jmp_op(struct bpf_verifier_env *env,
 		   is_pointer_value(env, insn->dst_reg)) {
 		verbose(env, "R%d pointer comparison prohibited\n",
 			insn->dst_reg);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	if (env->log.level)
@@ -4929,6 +5034,8 @@ static int do_check(struct bpf_verifier_env *env)
 			if (is_ctx_reg(env, insn->dst_reg)) {
 				verbose(env, "BPF_ST stores into R%d context is not allowed\n",
 					insn->dst_reg);
+				printk("-EACCESS @ file %s line %d function %s\n",
+				       __FILE__, __LINE__, __FUNCTION__);
 				return -EACCES;
 			}
 
@@ -5002,6 +5109,9 @@ static int do_check(struct bpf_verifier_env *env)
 
 				if (is_pointer_value(env, BPF_REG_0)) {
 					verbose(env, "R0 leaks addr as return value\n");
+					printk("-EACCESS @ file %s line %d function %s\n",
+					       __FILE__, __LINE__,
+					       __FUNCTION__);
 					return -EACCES;
 				}
 

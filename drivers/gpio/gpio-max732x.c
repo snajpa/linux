@@ -260,6 +260,8 @@ static int max732x_gpio_direction_input(struct gpio_chip *gc, unsigned off)
 	if ((mask & chip->dir_input) == 0) {
 		dev_dbg(&chip->client->dev, "%s port %d is output only\n",
 			chip->client->name, off);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -282,6 +284,8 @@ static int max732x_gpio_direction_output(struct gpio_chip *gc,
 	if ((mask & chip->dir_output) == 0) {
 		dev_dbg(&chip->client->dev, "%s port %d is input only\n",
 			chip->client->name, off);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -402,6 +406,8 @@ static int max732x_irq_set_type(struct irq_data *d, unsigned int type)
 	if (!(mask & chip->dir_input)) {
 		dev_dbg(&chip->client->dev, "%s port %d is output only\n",
 			chip->client->name, off);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

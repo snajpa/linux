@@ -120,6 +120,8 @@ static int fib4_rule_action(struct fib_rule *rule, struct flowi *flp,
 		return -ENETUNREACH;
 
 	case FR_ACT_PROHIBIT:
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 
 	case FR_ACT_BLACKHOLE:

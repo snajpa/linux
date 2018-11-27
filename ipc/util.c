@@ -339,8 +339,11 @@ static int ipc_check_perms(struct ipc_namespace *ns,
 {
 	int err;
 
-	if (ipcperms(ns, ipcp, params->flg))
+	if (ipcperms(ns, ipcp, params->flg)) {
 		err = -EACCES;
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
+	}
 	else {
 		err = ops->associate(ipcp, params->flg);
 		if (!err)

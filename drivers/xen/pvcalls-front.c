@@ -280,6 +280,8 @@ int pvcalls_front_socket(struct socket *sock)
 	pvcalls_enter();
 	if (!pvcalls_front_dev) {
 		pvcalls_exit();
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	bedata = dev_get_drvdata(&pvcalls_front_dev->dev);

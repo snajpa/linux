@@ -2592,8 +2592,11 @@ int btrfs_grow_device(struct btrfs_trans_handle *trans,
 	u64 old_total;
 	u64 diff;
 
-	if (!test_bit(BTRFS_DEV_STATE_WRITEABLE, &device->dev_state))
+	if (!test_bit(BTRFS_DEV_STATE_WRITEABLE, &device->dev_state)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	new_size = round_down(new_size, fs_info->sectorsize);
 

@@ -466,8 +466,11 @@ static int intel_spi_hw_cycle(struct intel_spi *ispi, u8 opcode, int len)
 	status = readl(ispi->base + HSFSTS_CTL);
 	if (status & HSFSTS_CTL_FCERR)
 		return -EIO;
-	else if (status & HSFSTS_CTL_AEL)
+	else if (status & HSFSTS_CTL_AEL) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	return 0;
 }
@@ -532,8 +535,11 @@ static int intel_spi_sw_cycle(struct intel_spi *ispi, u8 opcode, int len,
 	status = readl(ispi->sregs + SSFSTS_CTL);
 	if (status & SSFSTS_CTL_FCERR)
 		return -EIO;
-	else if (status & SSFSTS_CTL_AEL)
+	else if (status & SSFSTS_CTL_AEL) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	return 0;
 }
@@ -782,8 +788,11 @@ static int intel_spi_erase(struct spi_nor *nor, loff_t offs)
 		status = readl(ispi->base + HSFSTS_CTL);
 		if (status & HSFSTS_CTL_FCERR)
 			return -EIO;
-		else if (status & HSFSTS_CTL_AEL)
+		else if (status & HSFSTS_CTL_AEL) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 
 		offs += erase_size;
 		len -= erase_size;

@@ -120,12 +120,18 @@ static int hypfs_open(struct inode *inode, struct file *filp)
 	struct hypfs_sb_info *fs_info;
 
 	if (filp->f_mode & FMODE_WRITE) {
-		if (!(inode->i_mode & S_IWUGO))
+		if (!(inode->i_mode & S_IWUGO)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 	}
 	if (filp->f_mode & FMODE_READ) {
-		if (!(inode->i_mode & S_IRUGO))
+		if (!(inode->i_mode & S_IRUGO)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 	}
 
 	fs_info = inode->i_sb->s_fs_info;

@@ -164,6 +164,8 @@ static int request_locality(struct tpm_chip *chip)
 	} while (time_before(jiffies, stop));
 
 	/* could not get locality */
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 } /* request_locality() */
 

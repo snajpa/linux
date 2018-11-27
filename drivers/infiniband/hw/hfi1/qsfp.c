@@ -337,8 +337,11 @@ int i2c_write(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
 {
 	int ret;
 
-	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
+	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	ret = __i2c_write(ppd, target, i2c_addr, offset, bp, len);
 	if (ret)
@@ -376,8 +379,11 @@ int i2c_read(struct hfi1_pportdata *ppd, u32 target, int i2c_addr, int offset,
 {
 	int ret;
 
-	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
+	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	ret = __i2c_read(ppd, target, i2c_addr, offset, bp, len);
 	if (ret)
@@ -403,8 +409,11 @@ int qsfp_write(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
 	int ret = 0;
 	u8 page;
 
-	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
+	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	while (count < len) {
 		/*
@@ -483,8 +492,11 @@ int qsfp_read(struct hfi1_pportdata *ppd, u32 target, int addr, void *bp,
 	int ret = 0;
 	u8 page;
 
-	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__))
+	if (!check_chip_resource(ppd->dd, i2c_target(target), __func__)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	while (count < len) {
 		/*

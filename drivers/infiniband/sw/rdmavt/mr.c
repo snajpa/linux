@@ -660,8 +660,11 @@ int rvt_fast_reg_mr(struct rvt_qp *qp, struct ib_mr *ibmr, u32 key,
 {
 	struct rvt_mr *mr = to_imr(ibmr);
 
-	if (qp->ibqp.pd != mr->mr.pd)
+	if (qp->ibqp.pd != mr->mr.pd) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* not applicable to dma MR or user MR */
 	if (!mr->mr.lkey || mr->umem)

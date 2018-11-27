@@ -535,8 +535,11 @@ int mlx5_modify_nic_vport_node_guid(struct mlx5_core_dev *mdev,
 
 	if (!vport)
 		return -EINVAL;
-	if (!MLX5_CAP_GEN(mdev, vport_group_manager))
+	if (!MLX5_CAP_GEN(mdev, vport_group_manager)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	in = kvzalloc(inlen, GFP_KERNEL);
 	if (!in)

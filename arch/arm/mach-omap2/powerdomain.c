@@ -369,8 +369,11 @@ int pwrdm_complete_init(void)
 	struct powerdomain *temp_p;
 	static struct notifier_block nb;
 
-	if (list_empty(&pwrdm_list))
+	if (list_empty(&pwrdm_list)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	list_for_each_entry(temp_p, &pwrdm_list, node)
 		pwrdm_set_next_pwrst(temp_p, PWRDM_POWER_ON);

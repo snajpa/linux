@@ -1059,6 +1059,8 @@ static int rt2500pci_wait_bbp_ready(struct rt2x00_dev *rt2x00dev)
 	}
 
 	rt2x00_err(rt2x00dev, "BBP register access failed, aborting\n");
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 }
 
@@ -1069,8 +1071,11 @@ static int rt2500pci_init_bbp(struct rt2x00_dev *rt2x00dev)
 	u8 reg_id;
 	u8 value;
 
-	if (unlikely(rt2500pci_wait_bbp_ready(rt2x00dev)))
+	if (unlikely(rt2500pci_wait_bbp_ready(rt2x00dev))) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	rt2500pci_bbp_write(rt2x00dev, 3, 0x02);
 	rt2500pci_bbp_write(rt2x00dev, 4, 0x19);

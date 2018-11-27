@@ -685,8 +685,11 @@ static int ide_probe_port(ide_hwif_t *hwif)
 	BUG_ON(hwif->present);
 
 	if ((hwif->devices[0]->dev_flags & IDE_DFLAG_NOPROBE) &&
-	    (hwif->devices[1]->dev_flags & IDE_DFLAG_NOPROBE))
+	    (hwif->devices[1]->dev_flags & IDE_DFLAG_NOPROBE)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/*
 	 * We must always disable IRQ, as probe_for_drive will assert IRQ, but

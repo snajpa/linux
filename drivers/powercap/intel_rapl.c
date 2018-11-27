@@ -339,8 +339,11 @@ static int set_domain_enable(struct powercap_zone *power_zone, bool mode)
 {
 	struct rapl_domain *rd = power_zone_to_rapl_domain(power_zone);
 
-	if (rd->state & DOMAIN_STATE_BIOS_LOCKED)
+	if (rd->state & DOMAIN_STATE_BIOS_LOCKED) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	get_online_cpus();
 	rapl_write_data_raw(rd, PL1_ENABLE, mode);

@@ -61,6 +61,8 @@ static ssize_t nvmet_addr_adrfam_store(struct config_item *item,
 	if (port->enabled) {
 		pr_err("Cannot modify address while enabled\n");
 		pr_err("Disable the address before modifying\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -105,6 +107,8 @@ static ssize_t nvmet_addr_portid_store(struct config_item *item,
 	if (port->enabled) {
 		pr_err("Cannot modify address while enabled\n");
 		pr_err("Disable the address before modifying\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	port->disc_addr.portid = cpu_to_le16(portid);
@@ -135,6 +139,8 @@ static ssize_t nvmet_addr_traddr_store(struct config_item *item,
 	if (port->enabled) {
 		pr_err("Cannot modify address while enabled\n");
 		pr_err("Disable the address before modifying\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -168,6 +174,8 @@ static ssize_t nvmet_addr_treq_store(struct config_item *item,
 	if (port->enabled) {
 		pr_err("Cannot modify address while enabled\n");
 		pr_err("Disable the address before modifying\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -208,6 +216,8 @@ static ssize_t nvmet_addr_trsvcid_store(struct config_item *item,
 	if (port->enabled) {
 		pr_err("Cannot modify address while enabled\n");
 		pr_err("Disable the address before modifying\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -235,6 +245,8 @@ static ssize_t nvmet_param_inline_data_size_store(struct config_item *item,
 	if (port->enabled) {
 		pr_err("Cannot modify inline_data_size while port enabled\n");
 		pr_err("Disable the port before modifying\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	ret = kstrtoint(page, 0, &port->inline_data_size);
@@ -278,6 +290,8 @@ static ssize_t nvmet_addr_trtype_store(struct config_item *item,
 	if (port->enabled) {
 		pr_err("Cannot modify address while enabled\n");
 		pr_err("Disable the address before modifying\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

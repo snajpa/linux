@@ -22,7 +22,9 @@ int afs_abort_to_error(u32 abort_code)
 {
 	switch (abort_code) {
 		/* Low errno codes inserted into abort namespace */
-	case 13:		return -EACCES;
+	case 13:		printk("-EACCESS @ file %s line %d function %s\n",
+				       __FILE__, __LINE__, __FUNCTION__);
+		return -EACCES;
 	case 27:		return -EFBIG;
 	case 30:		return -EROFS;
 
@@ -66,7 +68,10 @@ int afs_abort_to_error(u32 abort_code)
 	case AFSVL_BADRELLOCKTYPE:	return -EINVAL;
 	case AFSVL_RERELEASE:		return -EREMOTEIO;
 	case AFSVL_BADSERVERFLAG:	return -EINVAL;
-	case AFSVL_PERM:		return -EACCES;
+	case AFSVL_PERM:		printk("-EACCESS @ file %s line %d function %s\n",
+					       __FILE__, __LINE__,
+					       __FUNCTION__);
+		return -EACCES;
 	case AFSVL_NOMEM:		return -EREMOTEIO;
 
 		/* Unified AFS error table; ET "uae" == 0x2f6df00 */
@@ -75,7 +80,10 @@ int afs_abort_to_error(u32 abort_code)
 	case 0x2f6df04:		return -EIO;
 	case 0x2f6df0a:		return -EAGAIN;
 	case 0x2f6df0b:		return -ENOMEM;
-	case 0x2f6df0c:		return -EACCES;
+	case 0x2f6df0c:		printk("-EACCESS @ file %s line %d function %s\n",
+					      __FILE__, __LINE__,
+					      __FUNCTION__);
+		return -EACCES;
 	case 0x2f6df0f:		return -EBUSY;
 	case 0x2f6df10:		return -EEXIST;
 	case 0x2f6df11:		return -EXDEV;

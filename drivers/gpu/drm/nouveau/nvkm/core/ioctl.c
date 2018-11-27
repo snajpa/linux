@@ -412,6 +412,8 @@ nvkm_ioctl_path(struct nvkm_client *client, u64 handle, u32 type,
 
 	if (owner != NVIF_IOCTL_V0_OWNER_ANY && owner != object->route) {
 		nvif_ioctl(&client->object, "route != owner\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	*route = object->route;

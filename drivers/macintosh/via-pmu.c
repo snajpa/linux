@@ -2338,8 +2338,11 @@ static int pmu_ioctl(struct file *filp,
 	switch (cmd) {
 #ifdef CONFIG_PPC_PMAC
 	case PMU_IOC_SLEEP:
-		if (!capable(CAP_SYS_ADMIN))
+		if (!capable(CAP_SYS_ADMIN)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		return pm_suspend(PM_SUSPEND_MEM);
 	case PMU_IOC_CAN_SLEEP:
 		if (pmac_call_feature(PMAC_FTR_SLEEP_STATE, NULL, 0, -1) < 0)

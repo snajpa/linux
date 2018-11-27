@@ -86,6 +86,8 @@ good_area:
 				goto out;
 			} else if (fault & VM_FAULT_SIGBUS) {
 				err = -EACCES;
+				printk("-EACCESS @ file %s line %d function %s\n",
+				       __FILE__, __LINE__, __FUNCTION__);
 				goto out;
 			}
 			BUG();

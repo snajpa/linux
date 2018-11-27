@@ -388,10 +388,15 @@ static int ima_open_policy(struct inode *inode, struct file *filp)
 {
 	if (!(filp->f_flags & O_WRONLY)) {
 #ifndef	CONFIG_IMA_READ_POLICY
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 #else
-		if ((filp->f_flags & O_ACCMODE) != O_RDONLY)
+		if ((filp->f_flags & O_ACCMODE) != O_RDONLY) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		if (!capable(CAP_SYS_ADMIN))
 			return -EPERM;
 		return seq_open(filp, &ima_policy_seqops);

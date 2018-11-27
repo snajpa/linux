@@ -354,8 +354,11 @@ static ssize_t efivar_attr_show(struct kobject *kobj, struct attribute *attr,
 	struct efivar_attribute *efivar_attr = to_efivar_attr(attr);
 	ssize_t ret = -EIO;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (efivar_attr->show) {
 		ret = efivar_attr->show(var, buf);
@@ -370,8 +373,11 @@ static ssize_t efivar_attr_store(struct kobject *kobj, struct attribute *attr,
 	struct efivar_attribute *efivar_attr = to_efivar_attr(attr);
 	ssize_t ret = -EIO;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (efivar_attr->store)
 		ret = efivar_attr->store(var, buf, count);
@@ -425,8 +431,11 @@ static ssize_t efivar_create(struct file *filp, struct kobject *kobj,
 	u8 *data;
 	int err;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (need_compat) {
 		if (count != sizeof(*compat))
@@ -492,8 +501,11 @@ static ssize_t efivar_delete(struct file *filp, struct kobject *kobj,
 	efi_guid_t vendor;
 	int err = 0;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (is_compat()) {
 		if (count != sizeof(*compat))

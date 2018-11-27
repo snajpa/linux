@@ -45,8 +45,11 @@ dasd_ioctl_enable(struct block_device *bdev)
 {
 	struct dasd_device *base;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	base = dasd_device_from_gendisk(bdev->bd_disk);
 	if (!base)
@@ -71,8 +74,11 @@ dasd_ioctl_disable(struct block_device *bdev)
 {
 	struct dasd_device *base;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	base = dasd_device_from_gendisk(bdev->bd_disk);
 	if (!base)
@@ -106,8 +112,11 @@ static int dasd_ioctl_quiesce(struct dasd_block *block)
 	struct dasd_device *base;
 
 	base = block->base;
-	if (!capable (CAP_SYS_ADMIN))
+	if (!capable (CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	pr_info("%s: The DASD has been put in the quiesce "
 		"state\n", dev_name(&base->cdev->dev));
@@ -127,8 +136,11 @@ static int dasd_ioctl_resume(struct dasd_block *block)
 	struct dasd_device *base;
 
 	base = block->base;
-	if (!capable (CAP_SYS_ADMIN))
+	if (!capable (CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	pr_info("%s: I/O operations have been resumed "
 		"on the DASD\n", dev_name(&base->cdev->dev));
@@ -150,8 +162,11 @@ static int dasd_ioctl_abortio(struct dasd_block *block)
 	struct dasd_ccw_req *cqr, *n;
 
 	base = block->base;
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (test_and_set_bit(DASD_FLAG_ABORTALL, &base->flags))
 		return 0;
@@ -184,8 +199,11 @@ static int dasd_ioctl_allowio(struct dasd_block *block)
 	struct dasd_device *base;
 
 	base = block->base;
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (test_and_clear_bit(DASD_FLAG_ABORTALL, &base->flags))
 		DBF_DEV_EVENT(DBF_NOTICE, base, "%s", "abortall flag unset");
@@ -265,8 +283,11 @@ dasd_ioctl_format(struct block_device *bdev, void __user *argp)
 	struct format_data_t fdata;
 	int rc;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	if (!argp)
 		return -EINVAL;
 	base = dasd_device_from_gendisk(bdev->bd_disk);
@@ -499,8 +520,11 @@ dasd_ioctl_set_ro(struct block_device *bdev, void __user *argp)
 	struct dasd_device *base;
 	int intval, rc;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	if (bdev != bdev->bd_contains)
 		// ro setting is not allowed for partitions
 		return -EINVAL;

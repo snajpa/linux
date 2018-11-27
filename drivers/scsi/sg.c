@@ -232,6 +232,8 @@ static int sg_check_file_access(struct file *filp, const char *caller)
 	if (uaccess_kernel()) {
 		pr_err_once("%s: process %d (%s) called from kernel context, this is not allowed.\n",
 			caller, task_tgid_vnr(current), current->comm);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 	return 0;
@@ -2389,8 +2391,11 @@ sg_proc_write_adio(struct file *filp, const char __user *buffer,
 	int err;
 	unsigned long num;
 
-	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO))
+	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	err = kstrtoul_from_user(buffer, count, 0, &num);
 	if (err)
 		return err;
@@ -2410,8 +2415,11 @@ sg_proc_write_dressz(struct file *filp, const char __user *buffer,
 	int err;
 	unsigned long k = ULONG_MAX;
 
-	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO))
+	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	err = kstrtoul_from_user(buffer, count, 0, &k);
 	if (err)

@@ -105,8 +105,11 @@ static ssize_t twl_sysfs_aen_read(struct file *filp, struct kobject *kobj,
 	unsigned long flags = 0;
 	ssize_t ret;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	spin_lock_irqsave(tw_dev->host->host_lock, flags);
 	ret = memory_read_from_buffer(outbuf, count, &offset, tw_dev->event_queue[0], sizeof(TW_Event) * TW_Q_LENGTH);
@@ -136,8 +139,11 @@ static ssize_t twl_sysfs_compat_info(struct file *filp, struct kobject *kobj,
 	unsigned long flags = 0;
 	ssize_t ret;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	spin_lock_irqsave(tw_dev->host->host_lock, flags);
 	ret = memory_read_from_buffer(outbuf, count, &offset, &tw_dev->tw_compat_info, sizeof(TW_Compatibility_Info));

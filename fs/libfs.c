@@ -831,8 +831,11 @@ ssize_t simple_attr_read(struct file *file, char __user *buf,
 
 	attr = file->private_data;
 
-	if (!attr->get)
+	if (!attr->get) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	ret = mutex_lock_interruptible(&attr->mutex);
 	if (ret)
@@ -867,8 +870,11 @@ ssize_t simple_attr_write(struct file *file, const char __user *buf,
 	ssize_t ret;
 
 	attr = file->private_data;
-	if (!attr->set)
+	if (!attr->set) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	ret = mutex_lock_interruptible(&attr->mutex);
 	if (ret)

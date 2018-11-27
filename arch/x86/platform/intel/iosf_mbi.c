@@ -274,8 +274,11 @@ static int mcr_set(void *data, u64 val)
 
 	*(u32 *)data = val;
 
-	if (!capable(CAP_SYS_RAWIO))
+	if (!capable(CAP_SYS_RAWIO)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (command & 1u)
 		err = iosf_mbi_write(port,

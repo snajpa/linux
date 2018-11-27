@@ -2405,8 +2405,11 @@ int sed_ioctl(struct opal_dev *dev, unsigned int cmd, void __user *arg)
 	void *p;
 	int ret = -ENOTTY;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	if (!dev)
 		return -ENOTSUPP;
 	if (!dev->supported)

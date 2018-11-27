@@ -363,6 +363,8 @@ static ssize_t ntfs_prepare_file_for_write(struct kiocb *iocb,
 		 */
 		ntfs_debug("Denying write access to encrypted file.");
 		err = -EACCES;
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		goto out;
 	}
 	if (NInoCompressed(ni)) {

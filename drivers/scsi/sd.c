@@ -232,8 +232,11 @@ manage_start_stop_store(struct device *dev, struct device_attribute *attr,
 	struct scsi_device *sdp = sdkp->device;
 	bool v;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (kstrtobool(buf, &v))
 		return -EINVAL;
@@ -260,8 +263,11 @@ allow_restart_store(struct device *dev, struct device_attribute *attr,
 	struct scsi_disk *sdkp = to_scsi_disk(dev);
 	struct scsi_device *sdp = sdkp->device;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (sdp->type != TYPE_DISK && sdp->type != TYPE_ZBC)
 		return -EINVAL;
@@ -311,8 +317,11 @@ protection_type_store(struct device *dev, struct device_attribute *attr,
 	unsigned int val;
 	int err;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	err = kstrtouint(buf, 10, &val);
 
@@ -395,8 +404,11 @@ provisioning_mode_store(struct device *dev, struct device_attribute *attr,
 	struct scsi_device *sdp = sdkp->device;
 	int mode;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (sd_is_zoned(sdkp)) {
 		sd_config_discard(sdkp, SD_LBP_DISABLE);
@@ -440,8 +452,11 @@ zeroing_mode_store(struct device *dev, struct device_attribute *attr,
 	struct scsi_disk *sdkp = to_scsi_disk(dev);
 	int mode;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	mode = sysfs_match_string(zeroing_mode, buf);
 	if (mode < 0)
@@ -470,8 +485,11 @@ max_medium_access_timeouts_store(struct device *dev,
 	struct scsi_disk *sdkp = to_scsi_disk(dev);
 	int err;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	err = kstrtouint(buf, 10, &sdkp->max_medium_access_timeouts);
 
@@ -497,8 +515,11 @@ max_write_same_blocks_store(struct device *dev, struct device_attribute *attr,
 	unsigned long max;
 	int err;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (sdp->type != TYPE_DISK && sdp->type != TYPE_ZBC)
 		return -EINVAL;

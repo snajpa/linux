@@ -241,8 +241,11 @@ generic_key_timeout(struct rpc_auth *auth, struct rpc_cred *cred)
 
 	/* lookup_cred either returns a valid referenced rpc_cred, or PTR_ERR */
 	tcred = auth->au_ops->lookup_cred(auth, acred, 0);
-	if (IS_ERR(tcred))
+	if (IS_ERR(tcred)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* Test for the almost error case */
 	ret = tcred->cr_ops->crkey_timeout(tcred);

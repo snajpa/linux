@@ -2328,6 +2328,8 @@ static void __do_request(struct ceph_mds_client *mdsc,
 	    session->s_state != CEPH_MDS_SESSION_HUNG) {
 		if (session->s_state == CEPH_MDS_SESSION_REJECTED) {
 			err = -EACCES;
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			goto out_session;
 		}
 		if (session->s_state == CEPH_MDS_SESSION_NEW ||

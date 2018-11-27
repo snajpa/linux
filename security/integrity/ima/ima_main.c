@@ -312,8 +312,11 @@ out:
 	if (pathbuf)
 		__putname(pathbuf);
 	if (must_appraise) {
-		if (rc && (ima_appraise & IMA_APPRAISE_ENFORCE))
+		if (rc && (ima_appraise & IMA_APPRAISE_ENFORCE)) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		if (file->f_mode & FMODE_WRITE)
 			set_bit(IMA_UPDATE_XATTR, &iint->atomic_flags);
 	}
@@ -472,6 +475,8 @@ int ima_post_read_file(struct file *file, void *buf, loff_t size,
 		if ((ima_appraise & IMA_APPRAISE_FIRMWARE) &&
 		    (ima_appraise & IMA_APPRAISE_ENFORCE)) {
 			pr_err("Prevent firmware loading_store.\n");
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;	/* INTEGRITY_UNKNOWN */
 		}
 		return 0;
@@ -482,8 +487,11 @@ int ima_post_read_file(struct file *file, void *buf, loff_t size,
 		return 0;
 
 	if (!file || !buf || size == 0) { /* should never happen */
-		if (ima_appraise & IMA_APPRAISE_ENFORCE)
+		if (ima_appraise & IMA_APPRAISE_ENFORCE) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		return 0;
 	}
 
@@ -514,12 +522,16 @@ int ima_load_data(enum kernel_load_data_id id)
 	case LOADING_KEXEC_IMAGE:
 		if (ima_appraise & IMA_APPRAISE_KEXEC) {
 			pr_err("impossible to appraise a kernel image without a file descriptor; try using kexec_file_load syscall.\n");
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;	/* INTEGRITY_UNKNOWN */
 		}
 		break;
 	case LOADING_FIRMWARE:
 		if (ima_appraise & IMA_APPRAISE_FIRMWARE) {
 			pr_err("Prevent firmware sysfs fallback loading.\n");
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;	/* INTEGRITY_UNKNOWN */
 		}
 		break;
@@ -528,6 +540,8 @@ int ima_load_data(enum kernel_load_data_id id)
 
 		if (!sig_enforce && (ima_appraise & IMA_APPRAISE_MODULES)) {
 			pr_err("impossible to appraise a module without a file descriptor. sig_enforce kernel parameter might help\n");
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;	/* INTEGRITY_UNKNOWN */
 		}
 	default:

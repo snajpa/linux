@@ -526,8 +526,11 @@ static int drm_mmap_locked(struct file *filp, struct vm_area_struct *vma)
 	DRM_DEBUG("start = 0x%lx, end = 0x%lx, page offset = 0x%lx\n",
 		  vma->vm_start, vma->vm_end, vma->vm_pgoff);
 
-	if (!priv->authenticated)
+	if (!priv->authenticated) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* We check for "dma". On Apple's UniNorth, it's valid to have
 	 * the AGP mapped at physical address 0

@@ -991,8 +991,11 @@ static int cache_open(struct inode *inode, struct file *filp,
 {
 	struct cache_reader *rp = NULL;
 
-	if (!cd || !try_module_get(cd->owner))
+	if (!cd || !try_module_get(cd->owner)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	nonseekable_open(inode, filp);
 	if (filp->f_mode & FMODE_READ) {
 		rp = kmalloc(sizeof(*rp), GFP_KERNEL);
@@ -1396,8 +1399,11 @@ static int content_open(struct inode *inode, struct file *file,
 	struct seq_file *seq;
 	int err;
 
-	if (!cd || !try_module_get(cd->owner))
+	if (!cd || !try_module_get(cd->owner)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	err = seq_open(file, &cache_content_op);
 	if (err) {
@@ -1421,8 +1427,11 @@ static int content_release(struct inode *inode, struct file *file,
 static int open_flush(struct inode *inode, struct file *file,
 			struct cache_detail *cd)
 {
-	if (!cd || !try_module_get(cd->owner))
+	if (!cd || !try_module_get(cd->owner)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	return nonseekable_open(inode, file);
 }
 

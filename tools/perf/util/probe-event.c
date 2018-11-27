@@ -3041,6 +3041,8 @@ static int try_to_find_absolute_address(struct perf_probe_event *pev,
 	    (kprobe_warn_out_range(tev->point.symbol,
 				   tev->point.address))) {
 		err = -EACCES;
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		goto errout;
 	}
 

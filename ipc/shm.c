@@ -1011,6 +1011,8 @@ static int shmctl_stat(struct ipc_namespace *ns, int shmid,
 		audit_ipc_obj(&shp->shm_perm);
 	else {
 		err = -EACCES;
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		if (ipcperms(ns, &shp->shm_perm, S_IRUGO))
 			goto out_unlock;
 	}
@@ -1459,6 +1461,8 @@ long do_shmat(int shmid, char __user *shmaddr, int shmflg,
 	}
 
 	err = -EACCES;
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	if (ipcperms(ns, &shp->shm_perm, acc_mode))
 		goto out_unlock;
 

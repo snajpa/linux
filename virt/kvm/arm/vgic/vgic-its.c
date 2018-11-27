@@ -2025,8 +2025,11 @@ static int vgic_its_save_itt(struct vgic_its *its, struct its_device *device)
 		 * have direct access to that state. Let's simply fail
 		 * the save operation...
 		 */
-		if (ite->irq->hw)
+		if (ite->irq->hw) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 
 		ret = vgic_its_save_ite(its, device, ite, gpa, ite_esz);
 		if (ret)

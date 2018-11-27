@@ -960,8 +960,11 @@ static int update_cpumask(struct cpuset *cs, struct cpuset *trialcs,
 	int retval;
 
 	/* top_cpuset.cpus_allowed tracks cpu_online_mask; it's read-only */
-	if (cs == &top_cpuset)
+	if (cs == &top_cpuset) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/*
 	 * An empty cpus_allowed is ok only if the cpuset has no tasks.

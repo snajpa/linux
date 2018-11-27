@@ -130,6 +130,8 @@ static int comp_open(struct inode *inode, struct file *filp)
 	     ((c->cfg->direction == MOST_CH_TX) &&
 		((filp->f_flags & O_ACCMODE) != O_WRONLY))) {
 		pr_info("WARN: Access flags mismatch\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

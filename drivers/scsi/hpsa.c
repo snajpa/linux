@@ -456,8 +456,11 @@ static ssize_t host_store_hp_ssd_smart_path_status(struct device *dev,
 	struct Scsi_Host *shost = class_to_shost(dev);
 	char tmpbuf[10];
 
-	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO))
+	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	len = count > sizeof(tmpbuf) - 1 ? sizeof(tmpbuf) - 1 : count;
 	strncpy(tmpbuf, buf, len);
 	tmpbuf[len] = '\0';
@@ -480,8 +483,11 @@ static ssize_t host_store_raid_offload_debug(struct device *dev,
 	struct Scsi_Host *shost = class_to_shost(dev);
 	char tmpbuf[10];
 
-	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO))
+	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	len = count > sizeof(tmpbuf) - 1 ? sizeof(tmpbuf) - 1 : count;
 	strncpy(tmpbuf, buf, len);
 	tmpbuf[len] = '\0';

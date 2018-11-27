@@ -1245,6 +1245,8 @@ static int semctl_stat(struct ipc_namespace *ns, int semid,
 		audit_ipc_obj(&sma->sem_perm);
 	else {
 		err = -EACCES;
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		if (ipcperms(ns, &sma->sem_perm, S_IRUGO))
 			goto out_unlock;
 	}
@@ -1352,12 +1354,16 @@ static int semctl_setval(struct ipc_namespace *ns, int semid, int semnum,
 
 	if (ipcperms(ns, &sma->sem_perm, S_IWUGO)) {
 		rcu_read_unlock();
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
 	err = security_sem_semctl(&sma->sem_perm, SETVAL);
 	if (err) {
 		rcu_read_unlock();
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -1407,6 +1413,8 @@ static int semctl_main(struct ipc_namespace *ns, int semid, int semnum,
 	nsems = sma->sem_nsems;
 
 	err = -EACCES;
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	if (ipcperms(ns, &sma->sem_perm, cmd == SETALL ? S_IWUGO : S_IRUGO))
 		goto out_rcu_wakeup;
 
@@ -1415,6 +1423,8 @@ static int semctl_main(struct ipc_namespace *ns, int semid, int semnum,
 		goto out_rcu_wakeup;
 
 	err = -EACCES;
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	switch (cmd) {
 	case GETALL:
 	{

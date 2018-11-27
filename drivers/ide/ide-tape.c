@@ -1191,8 +1191,11 @@ static ssize_t idetape_chrdev_write(struct file *file, const char __user *buf,
 	int rc;
 
 	/* The drive is write protected. */
-	if (tape->write_prot)
+	if (tape->write_prot) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	ide_debug_log(IDE_DBG_FUNC, "count %zd", count);
 
@@ -1275,8 +1278,11 @@ static int idetape_mtioctop(ide_drive_t *drive, short mt_op, int mt_count)
 
 	switch (mt_op) {
 	case MTWEOF:
-		if (tape->write_prot)
+		if (tape->write_prot) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 		ide_tape_discard_merge_buffer(drive, 1);
 		for (i = 0; i < mt_count; i++) {
 			retval = idetape_write_filemark(drive);

@@ -10381,8 +10381,11 @@ static int btrfs_permission(struct inode *inode, int mask)
 	    (S_ISREG(mode) || S_ISDIR(mode) || S_ISLNK(mode))) {
 		if (btrfs_root_readonly(root))
 			return -EROFS;
-		if (BTRFS_I(inode)->flags & BTRFS_INODE_READONLY)
+		if (BTRFS_I(inode)->flags & BTRFS_INODE_READONLY) {
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
+		}
 	}
 	return generic_permission(inode, mask);
 }

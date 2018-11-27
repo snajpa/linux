@@ -2681,8 +2681,11 @@ long fuse_ioctl_common(struct file *file, unsigned int cmd,
 	struct inode *inode = file_inode(file);
 	struct fuse_conn *fc = get_fuse_conn(inode);
 
-	if (!fuse_allow_current_process(fc))
+	if (!fuse_allow_current_process(fc)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (is_bad_inode(inode))
 		return -EIO;

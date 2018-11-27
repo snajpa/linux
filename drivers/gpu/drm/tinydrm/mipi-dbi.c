@@ -122,8 +122,11 @@ static bool mipi_dbi_command_is_read(struct mipi_dbi *mipi, u8 cmd)
  */
 int mipi_dbi_command_read(struct mipi_dbi *mipi, u8 cmd, u8 *val)
 {
-	if (!mipi->read_commands)
+	if (!mipi->read_commands) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (!mipi_dbi_command_is_read(mipi, cmd))
 		return -EINVAL;

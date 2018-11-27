@@ -437,6 +437,8 @@ retry_readpage:
 		if (NInoEncrypted(ni)) {
 			BUG_ON(ni->type != AT_DATA);
 			err = -EACCES;
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			goto err_out;
 		}
 		/* Compressed data streams are handled in compress.c. */
@@ -1390,6 +1392,8 @@ retry_writepage:
 			unlock_page(page);
 			BUG_ON(ni->type != AT_DATA);
 			ntfs_debug("Denying write access to encrypted file.");
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 		/* Compressed data streams are handled in compress.c. */

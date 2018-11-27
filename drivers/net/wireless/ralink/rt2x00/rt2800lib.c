@@ -566,6 +566,8 @@ int rt2800_wait_wpdma_ready(struct rt2x00_dev *rt2x00dev)
 	}
 
 	rt2x00_err(rt2x00dev, "WPDMA TX/RX busy [0x%08x]\n", reg);
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 }
 EXPORT_SYMBOL_GPL(rt2800_wait_wpdma_ready);
@@ -5666,6 +5668,8 @@ static int rt2800_wait_bbp_rf_ready(struct rt2x00_dev *rt2x00dev)
 	}
 
 	rt2x00_err(rt2x00dev, "BBP/RF register access failed, aborting\n");
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 }
 
@@ -5690,6 +5694,8 @@ static int rt2800_wait_bbp_ready(struct rt2x00_dev *rt2x00dev)
 	}
 
 	rt2x00_err(rt2x00dev, "BBP register access failed, aborting\n");
+	printk("-EACCESS @ file %s line %d function %s\n", __FILE__, __LINE__,
+	       __FUNCTION__);
 	return -EACCES;
 }
 

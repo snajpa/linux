@@ -385,6 +385,8 @@ nouveau_abi16_usif(struct drm_file *file_priv, void *data, u32 size)
 		case NVIF_IOCTL_V0_SCLASS:
 			break;
 		default:
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
 			return -EACCES;
 		}
 	} else

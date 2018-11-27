@@ -696,8 +696,11 @@ static ssize_t pm8001_store_update_fw(struct device *cdev,
 	int flash_command = FLASH_CMD_NONE;
 	int ret;
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	/* this test protects us from running two flash processes at once,
 	 * so we should start with this test */

@@ -99,6 +99,8 @@ ethsw_set_link_ksettings(struct net_device *netdev,
 	 */
 	if (netif_running(netdev)) {
 		netdev_info(netdev, "Sorry, interface must be brought down first.\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

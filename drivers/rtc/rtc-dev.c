@@ -227,19 +227,28 @@ static long rtc_dev_ioctl(struct file *file,
 	switch (cmd) {
 	case RTC_EPOCH_SET:
 	case RTC_SET_TIME:
-		if (!capable(CAP_SYS_TIME))
+		if (!capable(CAP_SYS_TIME)) {
 			err = -EACCES;
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
+		}
 		break;
 
 	case RTC_IRQP_SET:
-		if (arg > rtc->max_user_freq && !capable(CAP_SYS_RESOURCE))
+		if (arg > rtc->max_user_freq && !capable(CAP_SYS_RESOURCE)) {
 			err = -EACCES;
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
+		}
 		break;
 
 	case RTC_PIE_ON:
 		if (rtc->irq_freq > rtc->max_user_freq &&
-				!capable(CAP_SYS_RESOURCE))
+				!capable(CAP_SYS_RESOURCE)) {
 			err = -EACCES;
+			printk("-EACCESS @ file %s line %d function %s\n",
+			       __FILE__, __LINE__, __FUNCTION__);
+		}
 		break;
 	}
 

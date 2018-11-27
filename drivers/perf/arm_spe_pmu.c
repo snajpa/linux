@@ -713,8 +713,11 @@ static int arm_spe_pmu_event_init(struct perf_event *event)
 	if (!capable(CAP_SYS_ADMIN) &&
 	    (reg & (BIT(SYS_PMSCR_EL1_PA_SHIFT) |
 		    BIT(SYS_PMSCR_EL1_CX_SHIFT) |
-		    BIT(SYS_PMSCR_EL1_PCT_SHIFT))))
+		    BIT(SYS_PMSCR_EL1_PCT_SHIFT)))) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	return 0;
 }

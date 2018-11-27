@@ -938,6 +938,8 @@ wavefront_send_sample (snd_wavefront_t *dev,
 				snd_printk ("sample slot %d "
 					    "write protected\n",
 					    header->number);
+				printk("-EACCESS @ file %s line %d function %s\n",
+				       __FILE__, __LINE__, __FUNCTION__);
 				return -EACCES;
 			}
 		}

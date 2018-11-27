@@ -2466,8 +2466,11 @@ static int cdrom_ioctl_reset(struct cdrom_device_info *cdi,
 {
 	cd_dbg(CD_DO_IOCTL, "entering CDROM_RESET\n");
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	if (!CDROM_CAN(CDC_RESET))
 		return -ENOSYS;
 	invalidate_bdev(bdev);
@@ -2498,8 +2501,11 @@ static int cdrom_ioctl_debug(struct cdrom_device_info *cdi,
 {
 	cd_dbg(CD_DO_IOCTL, "%sabling debug\n", arg ? "En" : "Dis");
 
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 	debug = arg ? 1 : 0;
 	return debug;
 }

@@ -175,6 +175,8 @@ static int pcmcia_access_config(struct pcmcia_device *p_dev,
 	if (!(c->state & CONFIG_LOCKED)) {
 		dev_dbg(&p_dev->dev, "Configuration isn't locked\n");
 		mutex_unlock(&s->ops_mutex);
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 
@@ -501,6 +503,8 @@ int pcmcia_enable_device(struct pcmcia_device *p_dev)
 	if (c->state & CONFIG_LOCKED) {
 		mutex_unlock(&s->ops_mutex);
 		dev_dbg(&p_dev->dev, "Configuration is locked\n");
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
 	}
 

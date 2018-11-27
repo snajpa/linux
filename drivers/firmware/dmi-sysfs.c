@@ -101,8 +101,11 @@ static ssize_t dmi_sysfs_attr_show(struct kobject *kobj,
 	struct dmi_sysfs_attribute *attr = to_attr(_attr);
 
 	/* DMI stuff is only ever admin visible */
-	if (!capable(CAP_SYS_ADMIN))
+	if (!capable(CAP_SYS_ADMIN)) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	return attr->show(entry, buf);
 }

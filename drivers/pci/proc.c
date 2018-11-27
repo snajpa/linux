@@ -396,8 +396,11 @@ int pci_proc_attach_device(struct pci_dev *dev)
 	struct proc_dir_entry *e;
 	char name[16];
 
-	if (!proc_initialized)
+	if (!proc_initialized) {
+		printk("-EACCESS @ file %s line %d function %s\n", __FILE__,
+		       __LINE__, __FUNCTION__);
 		return -EACCES;
+	}
 
 	if (!bus->procdir) {
 		if (pci_proc_domain(bus)) {
