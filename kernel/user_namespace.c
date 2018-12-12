@@ -182,6 +182,7 @@ static void free_user_ns(struct work_struct *work)
 
 	do {
 		struct ucounts *ucounts = ns->ucounts;
+
 		parent = ns->parent;
 		if (ns->gid_map.nr_extents > UID_GID_MAP_MAX_BASE_EXTENTS) {
 			kfree(ns->gid_map.forward);

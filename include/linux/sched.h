@@ -1191,6 +1191,7 @@ struct task_struct {
 	/* Used by LSM modules for access restriction: */
 	void				*security;
 #endif
+	bool				syslog_ns_for_child;
 
 	/*
 	 * New fields for task_struct should be added above here, so that
