@@ -11,13 +11,9 @@
 #include <linux/uaccess.h>
 
 static struct vfsmount *nsfs_mnt;
+static const struct file_operations ns_file_operations;
+static const struct seq_operations ns_seq_operations;
 
-static long ns_ioctl(struct file *filp, unsigned int ioctl,
-			unsigned long arg);
-static const struct file_operations ns_file_operations = {
-	.llseek		= no_llseek,
-	.unlocked_ioctl = ns_ioctl,
-};
 
 static char *ns_dname(struct dentry *dentry, char *buffer, int buflen)
 {
@@ -80,7 +76,7 @@ slow:
 	}
 	inode->i_ino = ns->inum;
 	inode->i_mtime = inode->i_atime = inode->i_ctime = current_time(inode);
-	inode->i_flags |= S_IMMUTABLE;
+	//inode->i_flags |= S_IMMUTABLE;
 	inode->i_mode = S_IFREG | S_IRUGO;
 	inode->i_fop = &ns_file_operations;
 	inode->i_private = ns;
@@ -186,6 +182,85 @@ int open_related_ns(struct ns_common *ns,
 }
 EXPORT_SYMBOL_GPL(open_related_ns);
 
+static int ns_custom_unshare(struct task_struct *tsk, struct ns_common *ns)
+{
+	if (!ns || !ns->ops || !ns->ops->custom_unshare)
+		return -ENOSYS;
+
+	return ns->ops->custom_unshare(tsk, ns);
+}
+
+static int ns_open(struct inode *inode, struct file *filp)
+{
+	if (!capable(CAP_SYS_ADMIN))
+		return -EPERM;
+
+	int ret = seq_open(filp, &ns_seq_operations);
+	return ret;
+}
+
+static ssize_t ns_write(struct file *file, const char __user *buf,
+				 size_t count, loff_t *ppos)
+{
+	struct ns_common *ns = get_proc_ns(file_inode(file));
+	char *page;
+
+	if (count >= PAGE_SIZE)
+		return -ENOMEM;
+
+	page = memdup_user_nul(buf, count);
+	if (!ns)
+		return -ENOSYS;
+
+	if (IS_ERR(page))
+		return PTR_ERR(page);
+
+	if (strncmp(page, "unshare", 7))
+		return ns_custom_unshare(current, ns);
+
+	if (!ns || !ns->ops || !ns->ops->write)
+		return -ENOSYS;
+
+	return ns->ops->write(ns, file, page, count, ppos);
+}
+
+void *ns_start(struct seq_file *m, loff_t *pos)
+{
+	struct ns_common *ns = get_proc_ns(file_inode(m->file));
+
+	if (!ns || !ns->ops || !ns->ops->start)
+		return ERR_PTR(-ENOSYS);
+	return ns->ops->start(ns, m, pos);
+}
+
+void ns_stop(struct seq_file *m, void *v)
+{
+	struct ns_common *ns = get_proc_ns(file_inode(m->file));
+
+	if (!ns || !ns->ops || !ns->ops->stop)
+		return;
+	ns->ops->stop(ns, m, v);
+}
+
+void *ns_next(struct seq_file *m, void *v, loff_t *pos)
+{
+	struct ns_common *ns = get_proc_ns(file_inode(m->file));
+
+	if (!ns || !ns->ops || !ns->ops->next)
+		return ERR_PTR(-ENOSYS);
+	return ns->ops->next(ns, m, v, pos);
+}
+
+int ns_show(struct seq_file *m, void *v)
+{
+	struct ns_common *ns = get_proc_ns(file_inode(m->file));
+
+	if (!ns || !ns->ops || !ns->ops->show)
+		return -ENOSYS;
+	return ns->ops->show(ns, m, v);
+}
+
+
 static long ns_ioctl(struct file *filp, unsigned int ioctl,
 			unsigned long arg)
 {
@@ -256,6 +331,21 @@ static int nsfs_show_path(struct seq_file *seq, struct dentry *dentry)
 	seq_printf(seq, "%s:[%lu]", ns_ops->name, inode->i_ino);
 	return 0;
 }
+
+static const struct file_operations ns_file_operations = {
+	.llseek		= seq_lseek,
+	.read		= seq_read,
+	.release	= seq_release,
+	.open		= ns_open,
+	.write		= ns_write,
+	.unlocked_ioctl = ns_ioctl,
+};
+static const struct seq_operations ns_seq_operations = {
+        .start		= ns_start,
+        .stop		= ns_stop,
+        .next		= ns_next,
+        .show		= ns_show,
+};
 
 static const struct super_operations nsfs_ops = {
 	.statfs = simple_statfs,

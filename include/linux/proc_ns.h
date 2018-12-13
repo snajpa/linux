@@ -6,6 +6,7 @@
 #define _LINUX_PROC_NS_H
 
 #include <linux/ns_common.h>
+#include <linux/fs.h>
 
 struct pid_namespace;
 struct nsproxy;
@@ -20,6 +21,18 @@ struct proc_ns_operations {
 	struct ns_common *(*get)(struct task_struct *task);
 	void (*put)(struct ns_common *ns);
 	int (*install)(struct nsproxy *nsproxy, struct ns_common *ns);
+	ssize_t (*write)(struct ns_common *ns, struct file *file,
+			const char __user *buf, size_t count,
+			loff_t *ppos);
+        void *(*start) (struct ns_common *ns,
+			struct seq_file *m, loff_t *pos);
+        void (*stop)   (struct ns_common *ns,
+			struct seq_file *m, void *v);
+        void *(*next)  (struct ns_common *ns,
+			struct seq_file *m, void *v, loff_t *pos);
+        int  (*show)   (struct ns_common *ns,
+			struct seq_file *m, void *v);
+	int (*custom_unshare)(struct task_struct *tsk, struct ns_common *ns);
 	struct user_namespace *(*owner)(struct ns_common *ns);
 	struct ns_common *(*get_parent)(struct ns_common *ns);
 } __randomize_layout;
