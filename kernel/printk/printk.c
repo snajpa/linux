@@ -663,6 +663,10 @@ static int check_syslog_permissions(int type, int source,
 			|| type == SYSLOG_ACTION_CONSOLE_LEVEL)
 		ns = &init_syslog_ns;
 
+	/* create a new syslog ns */
+	if (type == SYSLOG_ACTION_NEW_NS)
+		return 0;
+
 	if (syslog_action_restricted(type, ns)) {
 		if (ns_capable(ns->user_ns, CAP_SYSLOG))
 			goto ok;
@@ -1568,6 +1572,14 @@ int do_syslog(int type, char __user *buf, int len, int source,
 	case SYSLOG_ACTION_SIZE_BUFFER:
 		error = ns->log_buf_len;
 		break;
+	case SYSLOG_ACTION_NEW_NS:
+#ifdef CONFIG_SYSLOG_NS
+		task_lock(current);
+		current->syslog_ns_for_child = true;
+		task_unlock(current);
+#else
+		error = -EINVAL;
+#endif
 		break;
 	default:
 		error = -EINVAL;
