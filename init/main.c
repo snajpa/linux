@@ -92,6 +92,7 @@
 #include <linux/rodata_test.h>
 #include <linux/jump_label.h>
 #include <linux/mem_encrypt.h>
+#include <linux/nsctlfs.h>
 
 #include <asm/io.h>
 #include <asm/bugs.h>
@@ -715,6 +716,7 @@ asmlinkage __visible void __init start_kernel(void)
 	cred_init();
 	fork_init();
 	proc_caches_init();
+	nsctl_init_early();
 	uts_ns_init();
 	buffer_init();
 	key_init();
@@ -730,6 +732,7 @@ asmlinkage __visible void __init start_kernel(void)
 	cgroup_init();
 	taskstats_init_early();
 	delayacct_init();
+	nsctl_init();
 
 	check_bugs();
 

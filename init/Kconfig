@@ -953,6 +953,14 @@ menuconfig NAMESPACES
 
 if NAMESPACES
 
+config NSCTLFS
+	default y
+	depends on PROC_FS
+	bool "Enable /proc/nsctl namespaces control interface" if EXPERT
+	help
+	  Provides file-based control interface for namespaces
+	  Heavy work in progress
+
 config UTS_NS
 	bool "UTS namespace"
 	default y
