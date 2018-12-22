@@ -32,6 +32,7 @@ extern const struct proc_ns_operations pidns_for_children_operations;
 extern const struct proc_ns_operations userns_operations;
 extern const struct proc_ns_operations mntns_operations;
 extern const struct proc_ns_operations cgroupns_operations;
+extern const struct proc_ns_operations nsctlns_operations;
 extern const struct proc_ns_operations syslogns_operations;
 
 /*
@@ -44,7 +45,8 @@ enum {
 	PROC_USER_INIT_INO	= 0xEFFFFFFDU,
 	PROC_PID_INIT_INO	= 0xEFFFFFFCU,
 	PROC_CGROUP_INIT_INO	= 0xEFFFFFFBU,
-	PROC_SYSLOG_INIT_INO	= 0xEFFFFFFAU,
+	PROC_NSCTL_INIT_INO	= 0xEFFFFFFAU,
+	PROC_SYSLOG_INIT_INO	= 0xEFFFFFF9U,
 };
 
 #ifdef CONFIG_PROC_FS

@@ -27,6 +27,7 @@
 #include <linux/file.h>
 #include <linux/syscalls.h>
 #include <linux/cgroup.h>
+#include <linux/nsctlfs.h>
 #include <linux/perf_event.h>
 
 static struct kmem_cache *nsproxy_cachep;
@@ -44,6 +45,9 @@ struct nsproxy init_nsproxy = {
 #endif
 #ifdef CONFIG_CGROUPS
 	.cgroup_ns		= &init_cgroup_ns,
+#endif
+#ifdef CONFIG_NSCTLFS
+	.nsctl_ns		= &init_nsctl_ns,
 #endif
 	.syslog_ns		= &init_syslog_ns,
 };
@@ -199,6 +203,8 @@ void free_nsproxy(struct nsproxy *ns)
 		put_ipc_ns(ns->ipc_ns);
 	if (ns->pid_ns_for_children)
 		put_pid_ns(ns->pid_ns_for_children);
+	if (ns->nsctl_ns)
+		put_nsctl_ns(ns->nsctl_ns);
 	if (ns->syslog_ns)
 		put_syslog_ns(ns->syslog_ns);
 	put_cgroup_ns(ns->cgroup_ns);

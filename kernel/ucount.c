@@ -76,6 +76,9 @@ static struct ctl_table user_table[] = {
 	UCOUNT_ENTRY("max_net_namespaces"),
 	UCOUNT_ENTRY("max_mnt_namespaces"),
 	UCOUNT_ENTRY("max_cgroup_namespaces"),
+#ifdef CONFIG_NSCTLFS
+	UCOUNT_ENTRY("max_nsctl_namespaces"),
+#endif
 	UCOUNT_ENTRY("max_syslog_namespaces"),
 #ifdef CONFIG_INOTIFY_USER
 	UCOUNT_ENTRY("max_inotify_instances"),
