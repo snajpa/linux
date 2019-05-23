@@ -1642,7 +1642,8 @@ int do_syslog(int type, char __user *buf, int len, int source,
 SYSCALL_DEFINE3(syslog, int, type, char __user *, buf, int, len)
 {
 	return do_syslog(type, buf, len, SYSLOG_FROM_READER,
-				current->nsproxy->syslog_ns);
+			 current->nsproxy ? current->nsproxy->syslog_ns :
+				&init_syslog_ns);
 }
 
 /*
@@ -1988,7 +1989,7 @@ int ns_vprintk_emit(struct syslog_namespace *ns, int facility, int level,
 			const char *fmt, va_list args)
 {
 	int printed_len;
-	bool in_sched = false, pending_output;
+	bool in_sched = false, pending_output = false;
 	unsigned long flags;
 	u64 curr_log_seq;
 
@@ -2004,13 +2005,48 @@ int ns_vprintk_emit(struct syslog_namespace *ns, int facility, int level,
 	boot_delay_msec(level);
 	printk_delay();
 
+	if (!ns)  {
+
+		/*
+		 * some printk may be generated when a process is dying
+		 * and nsproxy is NULL
+		 */
+		if (!current->nsproxy) {
+			ns = &init_syslog_ns;
+		} else {
+			ns = current->nsproxy->syslog_ns;
+
+			if (!ns)
+				ns = &init_syslog_ns;
+		}
+	}
+
+	if (ns != &init_syslog_ns) {
+		struct syslog_namespace *init_ns = &init_syslog_ns;
+		va_list init_args;
+
+
+		/* va_list is modified */
+		va_copy(init_args, args);
+
+		/* This stops the holder of console_sem just where we want him */
+		logbuf_lock_irqsave(flags, init_ns);
+		curr_log_seq = init_ns->log_next_seq;
+
+		ns_vprintk_store(init_ns, facility, level, dict, dictlen,
+						fmt, init_args);
+		logbuf_unlock_irqrestore(flags, init_ns);
+		pending_output = (curr_log_seq != init_ns->log_next_seq);
+	}
+
+
 	/* This stops the holder of console_sem just where we want him */
 	logbuf_lock_irqsave(flags, ns);
 	curr_log_seq = ns->log_next_seq;
 	printed_len = ns_vprintk_store(ns, facility, level, dict, dictlen,
 					fmt, args);
 	logbuf_unlock_irqrestore(flags, ns);
-	pending_output = (curr_log_seq != ns->log_next_seq);
+	pending_output |= (curr_log_seq != ns->log_next_seq);
 
 	/* If called from the scheduler, we can not call up(). */
 	if (!in_sched && pending_output) {
@@ -2039,7 +2075,7 @@ asmlinkage int vprintk_emit(int facility, int level,
 				const char *dict, size_t dictlen,
 				const char *fmt, va_list args)
 {
-	return ns_vprintk_emit(&init_syslog_ns, facility, level, dict, dictlen,
+	return ns_vprintk_emit(NULL, facility, level, dict, dictlen,
 				fmt, args);
 }
 EXPORT_SYMBOL(vprintk_emit);
@@ -2062,19 +2098,12 @@ EXPORT_SYMBOL(vprintk);
  *
  * See the vsnprintf() documentation for format string extensions over C99.
  **/
+
 asmlinkage int ns_printk(struct syslog_namespace *ns,
 					const char *fmt, ...)
 {
 	va_list args;
 	int r;
-	/* TODO: add knob somewhere */
-	bool copy_to_init_ns = true;
-
-	if (!ns)
-		ns = current->nsproxy->syslog_ns;
-
-	if (ns == &init_syslog_ns)
-		copy_to_init_ns = false;
 
 #ifdef CONFIG_KGDB_KDB
 	if (unlikely(kdb_trap_printk)) {
@@ -2084,12 +2113,9 @@ asmlinkage int ns_printk(struct syslog_namespace *ns,
 		return r;
 	}
 #endif
+
 	va_start(args, fmt);
 	r = ns_vprintk_emit(ns, 0, -1, NULL, 0, fmt, args);
-	if (!r)
-		return r;
-	if (copy_to_init_ns)
-		r = ns_vprintk_emit(&init_syslog_ns, 0, -1, NULL, 0, fmt, args);
 	va_end(args);
 
 	return r;
@@ -2108,7 +2134,8 @@ int vprintk_default(const char *fmt, va_list args)
 		return r;
 	}
 #endif
-	r = vprintk_emit(0, LOGLEVEL_DEFAULT, NULL, 0, fmt, args);
+
+	r = ns_vprintk_emit(NULL, 0, LOGLEVEL_DEFAULT, NULL, 0, fmt, args);
 
 	return r;
 }
