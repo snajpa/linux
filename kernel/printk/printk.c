@@ -1000,13 +1000,12 @@ static __poll_t devkmsg_poll(struct file *file, poll_table *wait)
 static int devkmsg_open(struct inode *inode, struct file *file)
 {
 	struct devkmsg_user *user;
+	int err;
 	struct syslog_namespace *ns;
 
 	if (!current->nsproxy)
 		return -EFAULT;
 	ns = current->nsproxy->syslog_ns;
-
-	int err;
 
 	if (devkmsg_log & DEVKMSG_LOG_MASK_OFF)
 		return -EPERM;
