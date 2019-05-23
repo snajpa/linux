@@ -354,11 +354,6 @@ static int console_msg_format = MSG_FORMAT_DEFAULT;
  * non-prinatable characters are escaped in the "\xff" notation.
  */
 
-enum log_flags {
-	LOG_NEWLINE	= 2,	/* text ended with a newline */
-	LOG_CONT	= 8,	/* text is a fragment of a continuation line */
-};
-
 struct printk_log {
 	u64 ts_nsec;		/* timestamp in nanoseconds */
 	u16 len;		/* length of entire record */
@@ -406,13 +401,6 @@ __packed __aligned(4)
 
 #ifdef CONFIG_PRINTK
 DECLARE_WAIT_QUEUE_HEAD(log_wait);
-
-#ifdef CONFIG_PRINTK_CALLER
-#define PREFIX_MAX		48
-#else
-#define PREFIX_MAX		32
-#endif
-#define LOG_LINE_MAX		(1024 - PREFIX_MAX)
 
 #define LOG_LEVEL(v)		((v) & 0x07)
 #define LOG_FACILITY(v)		((v) >> 3 & 0xff)
@@ -1327,7 +1315,7 @@ static size_t msg_print_text(const struct printk_log *msg, bool syslog,
 	const char *text = log_text(msg);
 	size_t text_size = msg->text_len;
 	size_t len = 0;
-	char prefix[PREFIX_MAX];
+	char prefix[LOG_PREFIX_MAX];
 	const size_t prefix_len = print_prefix(msg, syslog, time, prefix);
 
 	do {
@@ -1369,7 +1357,7 @@ static int syslog_print(char __user *buf, int size,
 	struct printk_log *msg;
 	int len = 0;
 
-	text = kmalloc(LOG_LINE_MAX + PREFIX_MAX, GFP_KERNEL);
+	text = kmalloc(LOG_LINE_MAX + LOG_PREFIX_MAX, GFP_KERNEL);
 	if (!text)
 		return -ENOMEM;
 
@@ -1399,7 +1387,7 @@ static int syslog_print(char __user *buf, int size,
 		skip = ns->syslog_partial;
 		msg = log_from_idx(ns->syslog_idx, ns);
 		n = msg_print_text(msg, true, ns->syslog_time, text,
-				   LOG_LINE_MAX + PREFIX_MAX);
+				   LOG_LINE_MAX + LOG_PREFIX_MAX);
 		if (n - ns->syslog_partial <= size) {
 			/* message fits into buffer, move forward */
 			ns->syslog_idx = log_next(ns->syslog_idx, ns);
@@ -1442,7 +1430,7 @@ static int syslog_print_all(char __user *buf, int size, bool clear,
 	u32 idx;
 	bool time;
 
-	text = kmalloc(LOG_LINE_MAX + PREFIX_MAX, GFP_KERNEL);
+	text = kmalloc(LOG_LINE_MAX + LOG_PREFIX_MAX, GFP_KERNEL);
 	if (!text)
 		return -ENOMEM;
 
@@ -1480,7 +1468,7 @@ static int syslog_print_all(char __user *buf, int size, bool clear,
 	while (len >= 0 && seq < next_seq) {
 		struct printk_log *msg = log_from_idx(idx, ns);
 		int textlen = msg_print_text(msg, true, time, text,
-					     LOG_LINE_MAX + PREFIX_MAX);
+					     LOG_LINE_MAX + LOG_PREFIX_MAX);
 
 		idx = log_next(idx, ns);
 		seq++;
@@ -1854,24 +1842,15 @@ static inline u32 printk_caller_id(void)
  * though, are printed immediately to the consoles to ensure everything has
  * reached the console in case of a kernel crash.
  */
-static struct cont {
-	char buf[LOG_LINE_MAX];
-	size_t len;			/* length == 0 means unused buffer */
-	u32 caller_id;			/* printk_caller_id() of first print */
-	u64 ts_nsec;			/* time of first print */
-	u8 level;			/* log level of first message */
-	u8 facility;			/* log facility of first message */
-	enum log_flags flags;		/* prefix, newline flags */
-} cont;
 
 static void cont_flush(struct syslog_namespace *ns)
 {
-	if (cont.len == 0)
+	if (ns->cont.len == 0)
 		return;
 
-	log_store(cont.caller_id, cont.facility, cont.level, cont.flags, cont.ts_nsec,
-		  NULL, 0, cont.buf, cont.len, ns);
-	cont.len = 0;
+	log_store(ns->cont.caller_id, ns->cont.facility, ns->cont.level, ns->cont.flags,
+		  ns->cont.ts_nsec, NULL, 0, ns->cont.buf, ns->cont.len, ns);
+	ns->cont.len = 0;
 }
 
 static bool cont_add(u32 caller_id, int facility, int level, enum log_flags flags,
@@ -1879,26 +1858,28 @@ static bool cont_add(u32 caller_id, int facility, int level, enum log_flags flag
 			struct syslog_namespace *ns)
 {
 	/* If the line gets too long, split it up in separate records. */
-	if (cont.len + len > sizeof(cont.buf)) {
+	if (ns->cont.len + len > sizeof(ns->cont.buf)) {
 		cont_flush(ns);
 		return false;
 	}
 
-	if (!cont.len) {
-		cont.facility = facility;
-		cont.level = level;
-		cont.caller_id = caller_id;
-		cont.ts_nsec = local_clock();
-		cont.flags = flags;
+	if (!ns->cont.len) {
+		ns->cont.facility = facility;
+		ns->cont.level = level;
+		ns->cont.caller_id = caller_id;
+		ns->cont.ts_nsec = local_clock();
+		ns->cont.flags = flags;
 	}
 
-	memcpy(cont.buf + cont.len, text, len);
-	cont.len += len;
+	memcpy(ns->cont.buf + ns->cont.len, text, len);
+	ns->cont.len += len;
 
-	// The original flags come from the first line,
-	// but later continuations can add a newline.
+	/*
+	 * The original flags come from the first line,
+	 * but later continuations can add a newline.
+	 */
 	if (flags & LOG_NEWLINE) {
-		cont.flags |= LOG_NEWLINE;
+		ns->cont.flags |= LOG_NEWLINE;
 		cont_flush(ns);
 	}
 
@@ -1915,8 +1896,8 @@ static size_t log_output(int facility, int level, enum log_flags lflags,
 	 * If an earlier line was buffered, and we're a continuation
 	 * write from the same context, try to add it to the buffer.
 	 */
-	if (cont.len) {
-		if (cont.caller_id == caller_id && (lflags & LOG_CONT)) {
+	if (ns->cont.len) {
+		if (ns->cont.caller_id == caller_id && (lflags & LOG_CONT)) {
 			if (cont_add(caller_id, facility, level, lflags,
 					text, text_len, ns))
 				return text_len;
@@ -2168,8 +2149,6 @@ EXPORT_SYMBOL(printk);
 
 #else /* CONFIG_PRINTK */
 
-#define LOG_LINE_MAX		0
-#define PREFIX_MAX		0
 #define printk_time		false
 
 static char *log_text(const struct printk_log *msg) { return NULL; }
@@ -2465,7 +2444,7 @@ static inline int can_use_console(void)
 void console_unlock(void)
 {
 	static char ext_text[CONSOLE_EXT_LOG_MAX];
-	static char text[LOG_LINE_MAX + PREFIX_MAX];
+	static char text[LOG_LINE_MAX + LOG_PREFIX_MAX];
 	unsigned long flags;
 	bool do_cond_resched, retry;
 	struct syslog_namespace *ns = &init_syslog_ns;
@@ -3478,6 +3457,7 @@ struct syslog_namespace init_syslog_ns = {
 	.dump_list = LIST_HEAD_INIT(init_syslog_ns.dump_list),
 	.ns.ops = &syslogns_operations,
 	.ns.inum = PROC_SYSLOG_INIT_INO,
+	.cont.len = 0,
 #ifdef CONFIG_SECURITY_DMESG_RESTRICT
 	.dmesg_restrict = 1,
 #else

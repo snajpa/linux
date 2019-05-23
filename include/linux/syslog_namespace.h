@@ -9,12 +9,46 @@
 #include <linux/err.h>
 #include <linux/kref.h>
 
+/*
+ * Continuation buffer, must be per syslog namespace or copying
+ * to init_syslog_ns will break lines
+ */
+
+#ifdef CONFIG_PRINTK
+
+#ifdef CONFIG_PRINTK_CALLER
+#define LOG_PREFIX_MAX		48
+#else
+#define LOG_PREFIX_MAX		32
+#endif
+#define LOG_LINE_MAX		(1024 - LOG_PREFIX_MAX)
+
+struct cont {
+	char buf[LOG_LINE_MAX];
+	size_t len;			/* length == 0 means unused buffer */
+	u32 caller_id;			/* printk_caller_id() of first print */
+	u64 ts_nsec;			/* time of first print */
+	u8 level;			/* log level of first message */
+	u8 facility;			/* log facility of first message */
+	enum log_flags flags;		/* prefix, newline flags */
+};
+
+#else /* CONFIG_PRINTK */
+
+#define LOG_LINE_MAX		0
+#define LOG_PREFIX_MAX		0
+#endif
+
+
 struct syslog_namespace {
 	struct user_namespace		*user_ns;
 	struct ucounts			*ucounts;
 	struct ns_common		ns;
 	struct kref			kref;
 	struct syslog_namespace		*parent;
+#ifdef CONFIG_PRINTK
+	struct cont			cont;
+#endif
 
 	/* access conflict locker */
 	raw_spinlock_t	logbuf_lock;

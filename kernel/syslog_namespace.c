@@ -84,6 +84,11 @@ struct syslog_namespace *clone_syslog_ns(struct user_namespace *user_ns,
 	ns->user_ns = get_user_ns(user_ns);
 	ns->parent = get_syslog_ns(old_ns);
 
+	/* init some members of continuation buffer, not necessary (kzalloc) */
+	ns->cont.len = 0;
+	ns->cont.ts_nsec = 0;
+	ns->cont.flags = 0;
+
 	raw_spin_lock_init(&(ns->logbuf_lock));
 	ns->logbuf_cpu = UINT_MAX;
 	spin_lock_init(&ns->dump_list_lock);
