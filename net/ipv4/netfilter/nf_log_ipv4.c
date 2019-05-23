@@ -334,7 +334,8 @@ static void nf_log_ip_packet(struct net *net, u_int8_t pf,
 
 	dump_ipv4_packet(net, m, loginfo, skb, 0);
 
-	nf_log_buf_close(m, current->nsproxy->syslog_ns);
+	/* link to the respective syslog ns */
+	nf_log_buf_close(m, net->nsproxy->syslog_ns);
 }
 
 static struct nf_logger nf_ip_logger __read_mostly = {

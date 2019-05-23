@@ -98,7 +98,8 @@ static void nf_log_arp_packet(struct net *net, u_int8_t pf,
 				  prefix);
 	dump_arp_packet(m, loginfo, skb, 0);
 
-	nf_log_buf_close(m, current->nsproxy->syslog_ns);
+	/* link to respective syslog ns */
+	nf_log_buf_close(m, net->nsproxy->syslog_ns);
 }
 
 static struct nf_logger nf_arp_logger __read_mostly = {
