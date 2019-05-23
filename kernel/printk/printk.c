@@ -1619,6 +1619,7 @@ int do_syslog(int type, char __user *buf, int len, int source,
 		break;
 	case SYSLOG_ACTION_NEW_NS:
 #ifdef CONFIG_SYSLOG_NS
+		pr_debug("Setting flag, new syslog namespace in clone()\n");
 		task_lock(current);
 		current->syslog_ns_for_child = true;
 		task_unlock(current);
