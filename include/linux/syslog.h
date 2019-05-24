@@ -34,7 +34,7 @@ struct syslog_namespace;
 #define SYSLOG_ACTION_SIZE_UNREAD    9
 /* Return size of the log buffer */
 #define SYSLOG_ACTION_SIZE_BUFFER   10
-/* Create a new syslog ns */
+/* Create a new syslog namespace for the current process */
 #define SYSLOG_ACTION_NEW_NS        11
 
 #define SYSLOG_FROM_READER	     0
