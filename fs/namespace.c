@@ -436,6 +436,7 @@ void __mnt_drop_write(struct vfsmount *mnt)
 	mnt_dec_writers(real_mount(mnt));
 	preempt_enable();
 }
+EXPORT_SYMBOL_GPL(__mnt_drop_write);
 
 /**
  * mnt_drop_write - give up write access to a mount
@@ -769,6 +770,13 @@ static inline int check_mnt(struct mount *mnt)
 {
 	return mnt->mnt_ns == current->nsproxy->mnt_ns;
 }
+
+/* for aufs, CONFIG_AUFS_BR_FUSE */
+int is_current_mnt_ns(struct vfsmount *mnt)
+{
+	return check_mnt(real_mount(mnt));
+}
+EXPORT_SYMBOL_GPL(is_current_mnt_ns);
 
 /*
  * vfsmount lock must be held for write
@@ -1832,6 +1840,7 @@ struct vfsmount *collect_mounts(const struct path *path)
 		return ERR_CAST(tree);
 	return &tree->mnt;
 }
+EXPORT_SYMBOL_GPL(iterate_mounts);
 
 static void free_mnt_ns(struct mnt_namespace *);
 static struct mnt_namespace *alloc_mnt_ns(struct user_namespace *, bool);
