@@ -162,13 +162,12 @@ static void au_hfsn_free_group(struct fsnotify_group *group)
 static int au_hfsn_handle_event(struct fsnotify_group *group,
 				struct inode *inode,
 				u32 mask, const void *data, int data_type,
-				const unsigned char *file_name, u32 cookie,
+				const struct qstr *file_name, u32 cookie,
 				struct fsnotify_iter_info *iter_info)
 {
 	int err;
 	struct au_hnotify *hnotify;
 	struct inode *h_dir, *h_inode;
-	struct qstr h_child_qstr = QSTR_INIT(file_name, strlen(file_name));
 	struct fsnotify_mark *inode_mark;
 
 	AuDebugOn(data_type != FSNOTIFY_EVENT_INODE);
@@ -183,11 +182,11 @@ static int au_hfsn_handle_event(struct fsnotify_group *group,
 	h_inode = NULL;
 #ifdef AuDbgHnotify
 	au_debug_on();
-	if (1 || h_child_qstr.len != sizeof(AUFS_XINO_FNAME) - 1
-	    || strncmp(h_child_qstr.name, AUFS_XINO_FNAME, h_child_qstr.len)) {
+	if (1 || file_name.len != sizeof(AUFS_XINO_FNAME) - 1
+	    || strncmp(file_name.name, AUFS_XINO_FNAME, file_name.len)) {
 		AuDbg("i%lu, mask 0x%x %s, hcname %.*s, hi%lu\n",
 		      h_dir->i_ino, mask, au_hfsn_name(mask),
-		      AuLNPair(&h_child_qstr), h_inode ? h_inode->i_ino : 0);
+		      AuLNPair(&file_name), h_inode ? h_inode->i_ino : 0);
 		/* WARN_ON(1); */
 	}
 	au_debug_off();
@@ -196,7 +195,7 @@ static int au_hfsn_handle_event(struct fsnotify_group *group,
 	inode_mark = fsnotify_iter_inode_mark(iter_info);
 	AuDebugOn(!inode_mark);
 	hnotify = container_of(inode_mark, struct au_hnotify, hn_mark);
-	err = au_hnotify(h_dir, hnotify, mask, &h_child_qstr, h_inode);
+	err = au_hnotify(h_dir, hnotify, mask, file_name, h_inode);
 
 out:
 	return err;
