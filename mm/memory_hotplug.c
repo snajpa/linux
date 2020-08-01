@@ -838,7 +838,7 @@ int __ref online_pages(unsigned long pfn, unsigned long nr_pages,
 
 	init_per_zone_wmark_min();
 
-	kswapd_run(nid);
+	kswapd_run(nid, NULL);
 	kcompactd_run(nid);
 
 	vm_total_pages = nr_free_pagecache_pages();
@@ -1594,7 +1594,7 @@ static int __ref __offline_pages(unsigned long start_pfn,
 
 	node_states_clear_node(node, &arg);
 	if (arg.status_change_nid >= 0) {
-		kswapd_stop(node);
+		kswapd_stop(node, NULL);
 		kcompactd_stop(node);
 	}
 

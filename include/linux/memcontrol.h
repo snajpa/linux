@@ -26,6 +26,7 @@ struct mem_cgroup;
 struct page;
 struct mm_struct;
 struct kmem_cache;
+typedef struct kswapd_info_struct kswapd_info_t;
 
 /* Cgroup-specific page state, on top of universal node page state */
 enum memcg_stat_item {
@@ -60,6 +61,9 @@ struct mem_cgroup_reclaim_cookie {
 	pg_data_t *pgdat;
 	unsigned int generation;
 };
+
+#define MEMCG_CHARGE_WMARK_LOW	0x01
+#define MEMCG_CHARGE_WMARK_HIGH	0x02
 
 #ifdef CONFIG_MEMCG
 
@@ -139,6 +143,8 @@ struct mem_cgroup_per_node {
 	bool			on_tree;
 	struct mem_cgroup	*memcg;		/* Back pointer, we cannot */
 						/* use container_of	   */
+	unsigned long		pages_scanned;	/* since last reclaim */
+	bool			all_unreclaimable;	/* All pages pinned */
 };
 
 struct mem_cgroup_threshold {
@@ -226,7 +232,26 @@ struct mem_cgroup {
 	/* Range enforcement for interrupt charges */
 	struct work_struct high_work;
 
+	/* While doing per cgroup background reclaim, we cache the
+	 * last node we reclaimed from
+	 */
+	int last_scanned_node;
+
 	unsigned long soft_limit;
+
+	/*
+	 * Triggers per-mem-cgroup kswapd reclaim
+	 */
+	unsigned long long low_wmark_limit;
+	/*
+	 * Stops per-mem-cgroup kswapd reclaim
+	 */
+	unsigned long long high_wmark_limit;
+	/*
+	 * Tunable background reclaim watermark ratio
+	 */
+	int wmark_ratio;
+	wait_queue_head_t *kswapd_wait;
 
 	/* vmpressure notifications */
 	struct vmpressure vmpressure;
@@ -526,7 +551,43 @@ static inline bool mem_cgroup_online(struct mem_cgroup *memcg)
 /*
  * For memory reclaim.
  */
-int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
+static inline bool mem_cgroup_high_wmark_limit_check(struct mem_cgroup *memcg)
+{
+	if (page_counter_read(&memcg->memory) < memcg->high_wmark_limit)
+		return true;
+
+	return false;
+}
+
+static inline bool mem_cgroup_low_wmark_limit_check(struct mem_cgroup *memcg)
+{
+	if (page_counter_read(&memcg->memory) < memcg->low_wmark_limit)
+		return true;
+
+	return false;
+}
+
+static inline int mem_cgroup_watermark_ok(struct mem_cgroup *mem,
+				int charge_flags)
+{
+	long ret = 0;
+	int flags = MEMCG_CHARGE_WMARK_LOW | MEMCG_CHARGE_WMARK_HIGH;
+
+	VM_BUG_ON((charge_flags & flags) == flags);
+
+	if (charge_flags & MEMCG_CHARGE_WMARK_LOW)
+		ret = mem_cgroup_low_wmark_limit_check(mem);
+	if (charge_flags & MEMCG_CHARGE_WMARK_HIGH)
+		ret = mem_cgroup_high_wmark_limit_check(mem);
+
+	return ret;
+}
+
+int mem_cgroup_init_kswapd(struct mem_cgroup *mem, kswapd_info_t *kswapd_info);
+void mem_cgroup_clear_kswapd(struct mem_cgroup *mem);
+wait_queue_head_t *mem_cgroup_kswapd_wait(struct mem_cgroup *mem);
+int mem_cgroup_last_scanned_node(struct mem_cgroup *mem);
+int mem_cgroup_select_victim_node(struct mem_cgroup *mem, const nodemask_t *nodes);
 
 void mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
 		int zid, int nr_pages);
@@ -742,6 +803,10 @@ unsigned long mem_cgroup_soft_limit_reclaim(pg_data_t *pgdat, int order,
 						gfp_t gfp_mask,
 						unsigned long *total_scanned);
 
+unsigned long mem_cgroup_wmark_limit_reclaim(pg_data_t *pgdat, int order,
+						gfp_t gfp_mask,
+						unsigned long *total_scanned);
+
 void __count_memcg_events(struct mem_cgroup *memcg, enum vm_event_item idx,
 			  unsigned long count);
 
@@ -912,6 +977,12 @@ static inline struct lruvec *mem_cgroup_page_lruvec(struct page *page,
 static inline struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *memcg)
 {
 	return NULL;
+}
+
+static inline int mem_cgroup_watermark_ok(struct mem_cgroup *mem,
+				int charge_flags)
+{
+	return 0;
 }
 
 static inline bool mm_match_cgroup(struct mm_struct *mm,

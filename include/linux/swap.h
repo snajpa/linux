@@ -37,6 +37,15 @@ static inline int current_is_kswapd(void)
 	return current->flags & PF_KSWAPD;
 }
 
+typedef struct kswapd_info_struct {
+	wait_queue_head_t kswapd_wait;
+	struct task_struct *kswapd_task;
+	pg_data_t *kswapd_pgdat;
+	struct mem_cgroup *kswapd_mem;
+} kswapd_info_t;
+
+int kswapd(void *p);
+
 /*
  * MAX_SWAPFILES defines the maximum number of swaptypes: things which can
  * be swapped to.  The swap type and the offset into that swap type are
@@ -179,6 +188,8 @@ enum {
 					/* add others here before... */
 	SWP_SCANNING	= (1 << 14),	/* refcount in scan_swap_map */
 };
+
+#define ZONE_RECLAIMABLE_RATE 6
 
 #define SWAP_CLUSTER_MAX 32UL
 #define COMPACT_CLUSTER_MAX SWAP_CLUSTER_MAX
@@ -376,8 +387,8 @@ extern int sysctl_min_slab_ratio;
 
 extern void check_move_unevictable_pages(struct pagevec *pvec);
 
-extern int kswapd_run(int nid);
-extern void kswapd_stop(int nid);
+extern int kswapd_run(int nid, struct mem_cgroup *mem);
+extern void kswapd_stop(int nid, struct mem_cgroup *mem);
 
 #ifdef CONFIG_SWAP
 

@@ -3130,11 +3130,11 @@ static bool allow_direct_reclaim(pg_data_t *pgdat)
 	wmark_ok = free_pages > pfmemalloc_reserve / 2;
 
 	/* kswapd must be awake if processes are being throttled */
-	if (!wmark_ok && waitqueue_active(&pgdat->kswapd_wait)) {
+	if (!wmark_ok && waitqueue_active(pgdat->kswapd_wait)) {
 		if (READ_ONCE(pgdat->kswapd_classzone_idx) > ZONE_NORMAL)
 			WRITE_ONCE(pgdat->kswapd_classzone_idx, ZONE_NORMAL);
 
-		wake_up_interruptible(&pgdat->kswapd_wait);
+		wake_up_interruptible(pgdat->kswapd_wait);
 	}
 
 	return wmark_ok;
@@ -3547,7 +3547,7 @@ static bool kswapd_shrink_node(pg_data_t *pgdat,
  * or lower is eligible for reclaim until at least one usable zone is
  * balanced.
  */
-static int balance_pgdat(pg_data_t *pgdat, int order, int classzone_idx)
+static int balance_pgdat(pg_data_t *pgdat, int order, int classzone_idx, struct mem_cgroup *mem)
 {
 	int i;
 	unsigned long nr_soft_reclaimed;
@@ -3770,16 +3770,20 @@ static enum zone_type kswapd_classzone_idx(pg_data_t *pgdat,
 	return curr_idx == MAX_NR_ZONES ? prev_classzone_idx : curr_idx;
 }
 
-static void kswapd_try_to_sleep(pg_data_t *pgdat, int alloc_order, int reclaim_order,
+#define is_node_kswapd(kswapd_p) (!(kswapd_p)->kswapd_mem)
+
+static void kswapd_try_to_sleep(kswapd_info_t *kswapd_info, int alloc_order, int reclaim_order,
 				unsigned int classzone_idx)
 {
+	pg_data_t *pgdat = kswapd_info->kswapd_pgdat;
+	wait_queue_head_t *kswapd_wait = &kswapd_info->kswapd_wait;
 	long remaining = 0;
 	DEFINE_WAIT(wait);
 
 	if (freezing(current) || kthread_should_stop())
 		return;
 
-	prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
+	prepare_to_wait(kswapd_wait, &wait, TASK_INTERRUPTIBLE);
 
 	/*
 	 * Try to sleep for a short interval. Note that kcompactd will only be
@@ -3788,69 +3792,78 @@ static void kswapd_try_to_sleep(pg_data_t *pgdat, int alloc_order, int reclaim_o
 	 * eligible zone balanced that it's also unlikely that compaction will
 	 * succeed.
 	 */
-	if (prepare_kswapd_sleep(pgdat, reclaim_order, classzone_idx)) {
-		/*
-		 * Compaction records what page blocks it recently failed to
-		 * isolate pages from and skips them in the future scanning.
-		 * When kswapd is going to sleep, it is reasonable to assume
-		 * that pages and compaction may succeed so reset the cache.
-		 */
-		reset_isolation_suitable(pgdat);
+	if (is_node_kswapd(kswapd_info)) {
+		if (!prepare_kswapd_sleep(pgdat, reclaim_order, classzone_idx))
+			goto skip_first_sleep;
+	} else // Memcg doesn't call compactd
+		goto skip_compactd;
+	/*
+	 * Compaction records what page blocks it recently failed to
+	 * isolate pages from and skips them in the future scanning.
+	 * When kswapd is going to sleep, it is reasonable to assume
+	 * that pages and compaction may succeed so reset the cache.
+	 */
+	reset_isolation_suitable(pgdat);
 
-		/*
-		 * We have freed the memory, now we should compact it to make
-		 * allocation of the requested order possible.
-		 */
-		wakeup_kcompactd(pgdat, alloc_order, classzone_idx);
+	/*
+	 * We have freed the memory, now we should compact it to make
+	 * allocation of the requested order possible.
+	 */
+	wakeup_kcompactd(pgdat, alloc_order, classzone_idx);
 
-		remaining = schedule_timeout(HZ/10);
+skip_compactd:
+	remaining = schedule_timeout(HZ/10);
 
-		/*
-		 * If woken prematurely then reset kswapd_classzone_idx and
-		 * order. The values will either be from a wakeup request or
-		 * the previous request that slept prematurely.
-		 */
-		if (remaining) {
-			WRITE_ONCE(pgdat->kswapd_classzone_idx,
-				   kswapd_classzone_idx(pgdat, classzone_idx));
+	/*
+	 * If woken prematurely then reset kswapd_classzone_idx and
+	 * order. The values will either be from a wakeup request or
+	 * the previous request that slept prematurely.
+	 */
+	if (remaining) {
+		WRITE_ONCE(pgdat->kswapd_classzone_idx,
+			   kswapd_classzone_idx(pgdat, classzone_idx));
 
-			if (READ_ONCE(pgdat->kswapd_order) < reclaim_order)
-				WRITE_ONCE(pgdat->kswapd_order, reclaim_order);
-		}
-
-		finish_wait(&pgdat->kswapd_wait, &wait);
-		prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
+		if (READ_ONCE(pgdat->kswapd_order) < reclaim_order)
+			WRITE_ONCE(pgdat->kswapd_order, reclaim_order);
 	}
 
+	finish_wait(kswapd_wait, &wait);
+	prepare_to_wait(kswapd_wait, &wait, TASK_INTERRUPTIBLE);
+
+skip_first_sleep:
 	/*
 	 * After a short sleep, check if it was a premature sleep. If not, then
 	 * go fully to sleep until explicitly woken up.
 	 */
-	if (!remaining &&
-	    prepare_kswapd_sleep(pgdat, reclaim_order, classzone_idx)) {
-		trace_mm_vmscan_kswapd_sleep(pgdat->node_id);
+	if (!remaining) {
+		if (is_node_kswapd(kswapd_info)) {
+			if (prepare_kswapd_sleep(pgdat, reclaim_order, classzone_idx)) {
+				trace_mm_vmscan_kswapd_sleep(pgdat->node_id);
 
-		/*
-		 * vmstat counters are not perfectly accurate and the estimated
-		 * value for counters such as NR_FREE_PAGES can deviate from the
-		 * true value by nr_online_cpus * threshold. To avoid the zone
-		 * watermarks being breached while under pressure, we reduce the
-		 * per-cpu vmstat threshold while kswapd is awake and restore
-		 * them before going back to sleep.
-		 */
-		set_pgdat_percpu_threshold(pgdat, calculate_normal_threshold);
+				/*
+				 * vmstat counters are not perfectly accurate and the estimated
+				 * value for counters such as NR_FREE_PAGES can deviate from the
+				 * true value by nr_online_cpus * threshold. To avoid the zone
+				 * watermarks being breached while under pressure, we reduce the
+				 * per-cpu vmstat threshold while kswapd is awake and restore
+				 * them before going back to sleep.
+				 */
+				set_pgdat_percpu_threshold(pgdat, calculate_normal_threshold);
 
-		if (!kthread_should_stop())
+				if (!kthread_should_stop())
+					schedule();
+
+				set_pgdat_percpu_threshold(pgdat, calculate_pressure_threshold);
+			}
+		} else
 			schedule();
-
-		set_pgdat_percpu_threshold(pgdat, calculate_pressure_threshold);
 	} else {
 		if (remaining)
 			count_vm_event(KSWAPD_LOW_WMARK_HIT_QUICKLY);
 		else
 			count_vm_event(KSWAPD_HIGH_WMARK_HIT_QUICKLY);
 	}
-	finish_wait(&pgdat->kswapd_wait, &wait);
+	finish_wait(kswapd_wait, &wait);
 }
 
 /*
@@ -3866,16 +3879,20 @@ static void kswapd_try_to_sleep(pg_data_t *pgdat, int alloc_order, int reclaim_o
  * If there are applications that are active memory-allocators
  * (most normal use), this basically shouldn't matter.
  */
-static int kswapd(void *p)
+int kswapd(void *p)
 {
 	unsigned int alloc_order, reclaim_order;
 	unsigned int classzone_idx = MAX_NR_ZONES - 1;
-	pg_data_t *pgdat = (pg_data_t*)p;
+	kswapd_info_t *kswapd_info = (kswapd_info_t*)p;
+	pg_data_t *pgdat = kswapd_info->kswapd_pgdat;
 	struct task_struct *tsk = current;
-	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
+	const struct cpumask *cpumask;
 
-	if (!cpumask_empty(cpumask))
-		set_cpus_allowed_ptr(tsk, cpumask);
+	if (is_node_kswapd(kswapd_info)) {
+		cpumask = cpumask_of_node(pgdat->node_id);
+		if (!cpumask_empty(cpumask) && is_node_kswapd(kswapd_info))
+			set_cpus_allowed_ptr(tsk, cpumask);
+	}
 
 	/*
 	 * Tell the memory management that we're a "memory allocator",
@@ -3901,7 +3918,7 @@ static int kswapd(void *p)
 		classzone_idx = kswapd_classzone_idx(pgdat, classzone_idx);
 
 kswapd_try_sleep:
-		kswapd_try_to_sleep(pgdat, alloc_order, reclaim_order,
+		kswapd_try_to_sleep(kswapd_info, alloc_order, reclaim_order,
 					classzone_idx);
 
 		/* Read the new order and classzone_idx */
@@ -3931,7 +3948,14 @@ kswapd_try_sleep:
 		 */
 		trace_mm_vmscan_kswapd_wake(pgdat->node_id, classzone_idx,
 						alloc_order);
-		reclaim_order = balance_pgdat(pgdat, alloc_order, classzone_idx);
+		if (is_node_kswapd(kswapd_info))
+			reclaim_order = balance_pgdat(pgdat, alloc_order, classzone_idx);
+		else
+			reclaim_order = mem_cgroup_shrink_node(kswapd_info->memcg,
+HEREICOMEZ						sk, bool noswap,
+						pg_data_t *pgdat,
+						unsigned long *nr_scanned)
+			reclaim_order = balance_pgdat(pgdat, alloc_order, classzone_idx);
 		if (reclaim_order < alloc_order)
 			goto kswapd_try_sleep;
 	}
@@ -3969,7 +3993,7 @@ void wakeup_kswapd(struct zone *zone, gfp_t gfp_flags, int order,
 	if (READ_ONCE(pgdat->kswapd_order) < order)
 		WRITE_ONCE(pgdat->kswapd_order, order);
 
-	if (!waitqueue_active(&pgdat->kswapd_wait))
+	if (!waitqueue_active(pgdat->kswapd_wait))
 		return;
 
 	/* Hopeless node, leave it to direct reclaim if possible */
@@ -3990,7 +4014,7 @@ void wakeup_kswapd(struct zone *zone, gfp_t gfp_flags, int order,
 
 	trace_mm_vmscan_wakeup_kswapd(pgdat->node_id, classzone_idx, order,
 				      gfp_flags);
-	wake_up_interruptible(&pgdat->kswapd_wait);
+	wake_up_interruptible(pgdat->kswapd_wait);
 }
 
 #ifdef CONFIG_HIBERNATION
@@ -4036,22 +4060,52 @@ unsigned long shrink_all_memory(unsigned long nr_to_reclaim)
  * This kswapd start function will be called by init and node-hot-add.
  * On node-hot-add, kswapd will moved to proper cpus if cpus are hot-added.
  */
-int kswapd_run(int nid)
+int kswapd_run(int nid, struct mem_cgroup *mem)
 {
-	pg_data_t *pgdat = NODE_DATA(nid);
+	pg_data_t *pgdat = NULL;
+	kswapd_info_t *kswapd_info;
+	struct task_struct *kswapd_task;
+	static char name[TASK_COMM_LEN];
+	int memcg_id;
 	int ret = 0;
 
-	if (pgdat->kswapd)
-		return 0;
+	if (!mem) {
+		pgdat = NODE_DATA(nid);
+		if (pgdat->kswapd_wait)
+			return 0;
+	}
 
-	pgdat->kswapd = kthread_run(kswapd, pgdat, "kswapd%d", nid);
-	if (IS_ERR(pgdat->kswapd)) {
+	kswapd_info = kzalloc(sizeof(kswapd_info_t), GFP_KERNEL);
+	if (!kswapd_info)
+		return -ENOMEM;
+
+	init_waitqueue_head(&kswapd_info->kswapd_wait);
+
+	if (mem) {
+		memcg_id = mem_cgroup_init_kswapd(mem, kswapd_info);
+		if (!memcg_id) {
+			kfree(kswapd_info);
+			return ret;
+		}
+		snprintf(name, TASK_COMM_LEN, "kswapd_memcg%d", memcg_id);
+	} else {
+		pgdat->kswapd_wait = &kswapd_info->kswapd_wait;
+		kswapd_info->kswapd_pgdat = pgdat;
+		snprintf(name, TASK_COMM_LEN, "kswapd%d", nid);
+	}
+
+	kswapd_task = kthread_run(kswapd, pgdat, "kswapd%d", nid);
+
+	if (IS_ERR(kswapd_task)) {
 		/* failure at boot is fatal */
 		BUG_ON(system_state < SYSTEM_RUNNING);
 		pr_err("Failed to start kswapd on node %d\n", nid);
-		ret = PTR_ERR(pgdat->kswapd);
-		pgdat->kswapd = NULL;
-	}
+		ret = PTR_ERR(kswapd_task);
+		pgdat->kswapd_wait = NULL;
+		kfree(kswapd_info);
+	} else
+		kswapd_info->kswapd_task = kswapd_task;
+
 	return ret;
 }
 
@@ -4059,14 +4113,24 @@ int kswapd_run(int nid)
  * Called by memory hotplug when all memory in a node is offlined.  Caller must
  * hold mem_hotplug_begin/end().
  */
-void kswapd_stop(int nid)
+void kswapd_stop(int nid, struct mem_cgroup *mem)
 {
-	struct task_struct *kswapd = NODE_DATA(nid)->kswapd;
+	struct task_struct *kswapd_task = NULL;
+	kswapd_info_t *kswapd_info = NULL;
+	wait_queue_head_t *wait_h;
 
-	if (kswapd) {
-		kthread_stop(kswapd);
-		NODE_DATA(nid)->kswapd = NULL;
+	pg_data_t *pgdat = NODE_DATA(nid);
+
+	wait_h = pgdat->kswapd_wait;
+	if (wait_h) {
+		kswapd_info = container_of(wait_h, kswapd_info_t, kswapd_wait);
+		kswapd_task = kswapd_info->kswapd_task;
+		kswapd_info = NULL;
 	}
+
+	if (kswapd_task)
+		kthread_stop(kswapd_task);
+	kfree(kswapd_info);
 }
 
 static int __init kswapd_init(void)
@@ -4075,7 +4139,7 @@ static int __init kswapd_init(void)
 
 	swap_setup();
 	for_each_node_state(nid, N_MEMORY)
- 		kswapd_run(nid);
+		kswapd_run(nid, NULL);
 	return 0;
 }
 

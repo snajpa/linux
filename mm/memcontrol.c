@@ -674,6 +674,52 @@ mem_cgroup_largest_soft_limit_node(struct mem_cgroup_tree_per_node *mctz)
 	return mz;
 }
 
+static void setup_per_memcg_wmarks(struct mem_cgroup *mem)
+{
+	u64 limit;
+	unsigned long wmark_ratio;
+
+	wmark_ratio = mem->wmark_ratio;
+	limit = mem_cgroup_get_max(mem);
+	if (wmark_ratio == 0) {
+		mem->low_wmark_limit = limit;
+		mem->high_wmark_limit = limit;
+	} else {
+		unsigned long long tmp = (wmark_ratio * limit) / 100;
+
+		mem->low_wmark_limit = tmp;
+		mem->high_wmark_limit = tmp - (tmp >> 8);
+	}
+}
+
+int mem_cgroup_init_kswapd(struct mem_cgroup *mem, kswapd_info_t *kswapd_info)
+{
+	if (!mem || !kswapd_info)
+		return 0;
+
+	mem->kswapd_wait = &kswapd_info->kswapd_wait;
+	kswapd_info->kswapd_mem = mem;
+
+	return mem->css.id;
+}
+
+void mem_cgroup_clear_kswapd(struct mem_cgroup *mem)
+{
+	if (mem)
+		mem->kswapd_wait = NULL;
+
+	return;
+}
+
+wait_queue_head_t *mem_cgroup_kswapd_wait(struct mem_cgroup *mem)
+{
+	if (!mem)
+		return NULL;
+
+	return mem->kswapd_wait;
+}
+
+
 /**
  * __mod_memcg_state - update cgroup memory statistics
  * @memcg: the memory cgroup
@@ -1642,6 +1688,32 @@ static int mem_cgroup_soft_reclaim(struct mem_cgroup *root_memcg,
 	}
 	mem_cgroup_iter_break(root_memcg, victim);
 	return total;
+}
+
+/*
+ * Visit the first node after the last_scanned_node of @mem and use that to
+ * reclaim free pages from.
+ */
+int
+mem_cgroup_select_victim_node(struct mem_cgroup *mem, const nodemask_t *nodes)
+{
+	int next_nid;
+	int last_scanned;
+
+	last_scanned = mem->last_scanned_node;
+
+	/* Initial stage and start from node0 */
+	if (last_scanned == -1)
+		next_nid = 0;
+	else
+		next_nid = next_node(last_scanned, *nodes);
+
+	if (next_nid == MAX_NUMNODES)
+		next_nid = first_node(*nodes);
+
+	mem->last_scanned_node = next_nid;
+
+	return next_nid;
 }
 
 #ifdef CONFIG_LOCKDEP
@@ -3093,6 +3165,7 @@ static int mem_cgroup_resize_max(struct mem_cgroup *memcg,
 		if (max > counter->max)
 			enlarge = true;
 		ret = page_counter_set_max(counter, max);
+		setup_per_memcg_wmarks(memcg);
 		mutex_unlock(&memcg_max_mutex);
 
 		if (!ret)
@@ -3321,6 +3394,8 @@ enum {
 	RES_MAX_USAGE,
 	RES_FAILCNT,
 	RES_SOFT_LIMIT,
+	RES_LOW_WMARK_LIMIT,
+	RES_HIGH_WMARK_LIMIT,
 };
 
 static u64 mem_cgroup_read_u64(struct cgroup_subsys_state *css,
@@ -3857,6 +3932,9 @@ static int memcg_stat_show(struct seq_file *m, void *v)
 			   (u64)memcg_page_state(memcg, NR_LRU_BASE + i) *
 			   PAGE_SIZE);
 
+	seq_printf(m, "low_wmark %llu\n", memcg->low_wmark_limit);
+	seq_printf(m, "high_wmark %llu\n", memcg->high_wmark_limit);
+
 #ifdef CONFIG_DEBUG_VM
 	{
 		pg_data_t *pgdat;
@@ -3906,6 +3984,26 @@ static int mem_cgroup_swappiness_write(struct cgroup_subsys_state *css,
 		vm_swappiness = val;
 
 	return 0;
+}
+
+static u64 mem_cgroup_wmark_ratio_read(struct cgroup_subsys_state *css,
+				       struct cftype *cft)
+{
+	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+
+	return memcg->wmark_ratio;
+}
+
+static int mem_cgroup_wmark_ratio_write(struct cgroup_subsys_state *css,
+					struct cftype *cft, u64 val)
+{
+	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+
+	memcg->wmark_ratio = val;
+
+	setup_per_memcg_wmarks(memcg);
+	return 0;
+
 }
 
 static void __mem_cgroup_threshold(struct mem_cgroup *memcg, bool swap)
@@ -4779,6 +4877,11 @@ static struct cftype mem_cgroup_legacy_files[] = {
 	},
 	{
 		.name = "pressure_level",
+	},
+	{
+		.name = "wmark_ratio",
+		.write_u64 = mem_cgroup_wmark_ratio_write,
+		.read_u64 = mem_cgroup_wmark_ratio_read,
 	},
 #ifdef CONFIG_NUMA
 	{
