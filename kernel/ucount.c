@@ -305,7 +305,7 @@ void dec_rlimit_ucounts(struct ucounts *ucounts, enum ucount_type type, long v)
 	}
 }
 
-bool is_ucounts_overlimit(struct ucounts *ucounts, enum ucount_type type, long max)
+bool is_ucounts_overlimit(struct ucounts *ucounts, enum ucount_type type, unsigned long max)
 {
 	struct ucounts *iter;
 	if (get_ucounts_value(ucounts, type) > max)
