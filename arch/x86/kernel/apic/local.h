@@ -13,6 +13,8 @@
 #include <asm/irq_vectors.h>
 #include <asm/apic.h>
 
+#define APIC_ID_MAX	768
+
 /* APIC flat 64 */
 void flat_init_apic_ldr(void);
 

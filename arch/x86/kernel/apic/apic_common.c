@@ -6,6 +6,8 @@
 #include <linux/irq.h>
 #include <asm/apic.h>
 
+#include "local.h"
+
 u32 apic_default_calc_apicid(unsigned int cpu)
 {
 	return per_cpu(x86_cpu_to_apicid, cpu);
@@ -42,5 +44,5 @@ int default_check_phys_apicid_present(int phys_apicid)
 
 int default_apic_id_valid(u32 apicid)
 {
-	return (apicid < 255);
+	return (apicid < APIC_ID_MAX);
 }

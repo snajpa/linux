@@ -61,6 +61,8 @@
 #include <asm/intel-family.h>
 #include <asm/irq_regs.h>
 
+#include "local.h"
+
 unsigned int num_processors;
 
 unsigned disabled_cpus;
@@ -1782,7 +1784,7 @@ static int __init setup_nox2apic(char *str)
 	if (x2apic_enabled()) {
 		int apicid = native_apic_msr_read(APIC_ID);
 
-		if (apicid >= 255) {
+		if (apicid >= APIC_ID_MAX) {
 			pr_warn("Apicid: %08x, cannot enforce nox2apic\n",
 				apicid);
 			return 0;
@@ -1822,7 +1824,7 @@ static __init void x2apic_disable(void)
 		return;
 
 	x2apic_id = read_apic_id();
-	if (x2apic_id >= 255)
+	if (x2apic_id >= APIC_ID_MAX)
 		panic("Cannot disable x2apic, id: %08x\n", x2apic_id);
 
 	__x2apic_disable();
@@ -1860,7 +1862,7 @@ static __init void try_to_enable_x2apic(int remap_mode)
 		 * in physical mode, and CPUs with an APIC ID that cannnot
 		 * be addressed must not be brought online.
 		 */
-		x2apic_set_max_apicid(255);
+		x2apic_set_max_apicid(APIC_ID_MAX);
 		x2apic_phys = 1;
 	}
 	x2apic_enable();
